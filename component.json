@@ -1,0 +1,10 @@
+{
+  "title": "jQuery Asynchronous Validator",
+  "name": "jquery.async.validator",
+  "version": "0.0.2",
+  "author": {
+    "name": "Jaime Pillora"
+  },
+  "homepage": "https://github.com/jpillora/jquery.async.validator",
+  "license": "MIT"
+}

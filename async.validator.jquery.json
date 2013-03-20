@@ -1,0 +1,31 @@
+{
+  "name": "async.validator",
+  "version": "0.0.1",
+  "title": "jQuery Async Validator",
+  "description": "A jQuery plugin to provide fully customisable asynchronous client-side validations.",
+  "author": {
+    "name": "Jaime Pillora"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://opensource.org/licenses/MIT"
+    }
+  ],
+  "keywords": [
+    "async",
+    "asynchronous",
+    "validator",
+    "validation",
+    "verify",
+    "check",
+    "customisable"
+  ],
+  "bugs": "https://github.com/jpillora/jquery.async.validator/issues",
+  "homepage": "http://jpillora.github.com/jquery.async.validator/",
+  "docs": "http://jpillora.github.com/jquery.async.validator/",
+  "download": "http://jpillora.github.com/jquery.async.validator/#Usage",
+  "dependencies": {
+    "jquery": ">=1.8"
+  }
+}
