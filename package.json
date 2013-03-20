@@ -1,5 +1,5 @@
 {
-  "name": "jquery.async.validator",
+  "name": "verify",
   "version": "0.0.2",
   "devDependencies": {
     "grunt": "~0.4.1",

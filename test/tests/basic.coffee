@@ -18,14 +18,14 @@ describe "Basic validations", ->
   beforeEach ->
     $('#konacha').html html
     form = $("form")
-    form.asyncValidator(skipHiddenFields: false)
+    form.verify(skipHiddenFields: false)
 
   describe "When initialisation", ->
     it "should have jquery accessor functions", ->
-      expect($.isFunction(form.asyncValidator)).to.equal true
+      expect($.isFunction(form.verify)).to.equal true
 
     it "should have attached validation engine object", ->
-      v = form.data("asyncValidator")
+      v = form.data("verify")
       expect(v).to.be.an "object"
 
   describe "When submitted", ->

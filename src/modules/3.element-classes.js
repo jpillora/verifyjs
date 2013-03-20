@@ -24,10 +24,10 @@ var ValidationForm = null;
                   guid();
       this.execution = null;
 
-      if(domElem.data('asyncValidator'))
+      if(domElem.data('verify'))
         return false;
 
-      domElem.data('asyncValidator',this);
+      domElem.data('verify',this);
       return true;
     },
 
@@ -282,7 +282,7 @@ var ValidationForm = null;
     //user triggered validate field event
     onValidate: function(event) {
       var domElem = $(event.currentTarget);
-      var field = domElem.data('asyncValidator') || this.updateField(domElem);
+      var field = domElem.data('verify') || this.updateField(domElem);
       field.log("validate");
       field.validate($.noop);
     },

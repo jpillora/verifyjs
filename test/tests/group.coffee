@@ -17,7 +17,7 @@ describe "Group validations (Simple)", ->
   """
 
   #validators used in this spec
-  $.asyncValidator.addGroupRules
+  $.verify.addGroupRules
     testGroup: (r) ->
       runCount++
       return "1 should be abc" unless r.val("1") is "abc"
@@ -28,11 +28,11 @@ describe "Group validations (Simple)", ->
     $('#konacha').html html
     runCount = 0
     form = $("form")
-    form.asyncValidator(skipHiddenFields: false)
+    form.verify(skipHiddenFields: false)
 
   describe "Group validations (Simple) - Group count", ->
     it "should have 1 group", ->
-      obj = form.data("asyncValidator")
+      obj = form.data("verify")
       expect(_.size(obj.groups)).to.equal 1
       expect(obj.groups.testGroup).to.exist
 

@@ -25,7 +25,7 @@ describe "Group validations (Ajax)", ->
     $.ajax = $ajax
 
   #validators used in this spec
-  $.asyncValidator.addGroupRules
+  $.verify.addGroupRules
     testGroupAjax: (r) ->
       r.ajax
         url: './data/pass.json'
@@ -36,7 +36,7 @@ describe "Group validations (Ajax)", ->
     $('#konacha').html html
     runCount = 0
     form = $("form")
-    form.asyncValidator()
+    form.verify()
     stubAjax()
 
   afterEach ->

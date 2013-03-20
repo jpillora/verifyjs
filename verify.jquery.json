@@ -1,7 +1,7 @@
 {
-  "name": "async.validator",
+  "name": "verify",
   "version": "0.0.1",
-  "title": "jQuery Async Validator",
+  "title": "Verify.js",
   "description": "A jQuery plugin to provide fully customisable asynchronous client-side validations.",
   "author": {
     "name": "Jaime Pillora"
@@ -21,10 +21,10 @@
     "check",
     "customisable"
   ],
-  "bugs": "https://github.com/jpillora/jquery.async.validator/issues",
-  "homepage": "http://jpillora.github.com/jquery.async.validator/",
-  "docs": "http://jpillora.github.com/jquery.async.validator/",
-  "download": "http://jpillora.github.com/jquery.async.validator/#Usage",
+  "bugs": "https://github.com/jpillora/verify/issues",
+  "homepage": "http://jpillora.github.com/verify/",
+  "docs": "http://jpillora.github.com/verify/",
+  "download": "http://jpillora.github.com/verify/#Usage",
   "dependencies": {
     "jquery": ">=1.8"
   }

@@ -4,7 +4,7 @@
  * ===================================== */
 
 $.fn.validate = function(callback) {
-  var validator = $(this).data('asyncValidator');
+  var validator = $(this).data('verify');
   if(validator)
     validator.validate(callback);
   else
@@ -13,17 +13,17 @@ $.fn.validate = function(callback) {
 
 $.fn.validate.version = VERSION;
 
-$.fn.asyncValidator = function(userOptions) {
+$.fn.verify = function(userOptions) {
   return this.each(function(i) {
 
     //get existing form class this element
-    var form = $.asyncValidator.forms.find($(this));
+    var form = $.verify.forms.find($(this));
 
     //unbind and destroy form
     if(userOptions === false || userOptions === "destroy") {
       if(form) {
         form.unbindEvents();
-        $.asyncValidator.forms.remove(form);
+        $.verify.forms.remove(form);
       }
       return;
     }
@@ -33,18 +33,18 @@ $.fn.asyncValidator = function(userOptions) {
       form.extendOptions(userOptions);
     } else {
       form = new ValidationForm($(this), userOptions);
-      $.asyncValidator.forms.add(form);
+      $.verify.forms.add(form);
     }
 
   });
 };
 
-$.asyncValidator = function(options) {
+$.verify = function(options) {
   Utils.checkOptions(options);
   $.extend(globalOptions, options);
 };
 
-$.extend($.asyncValidator, {
+$.extend($.verify, {
   version: VERSION,
   addRules: ruleManager.addFieldRules,
   addFieldRules: ruleManager.addFieldRules,
@@ -67,7 +67,7 @@ $.extend($.asyncValidator, {
 $(function() {
   $("form").filter(function() {
     return $(this).find("[" + globalOptions.validateAttribute + "]").length > 0;
-  }).asyncValidator();
+  }).verify();
 });
 
 log("plugin added.");

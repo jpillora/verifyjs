@@ -1,6 +1,6 @@
 
 var VERSION = "0.0.1",
-    cons = $.consoleNoConflict({ prefix: 'asyncValidator: ' }),
+    cons = $.consoleNoConflict({ prefix: 'verify.js: ' }),
     log  = cons.log,
     warn = cons.warn,
     info = cons.info;

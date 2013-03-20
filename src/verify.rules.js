@@ -1,7 +1,7 @@
 (function($) {
 
-  if($.asyncValidator === undefined) {
-    window.alert("Please include jquery.async.validator.js before each rule file");
+  if($.verify === undefined) {
+    window.alert("Please include verify.js before each rule file");
     return;
   }
   
@@ -28,7 +28,7 @@
    *    }
    *  # it gets merged with the object properties e.g. 'r.messages'
    */
-  $.asyncValidator.addFieldRules({
+  $.verify.addFieldRules({
     /* Regex validators
      * - at plugin load, 'regex' will be transformed into validator function 'fn' which uses 'message'
      */
@@ -62,7 +62,7 @@
     },
     date: {
       fn: function(r) {
-        if($.asyncValidator.utils.parseDate(r.val()))
+        if($.verify.utils.parseDate(r.val()))
           return true;
         return r.message;
       },
@@ -224,7 +224,7 @@
       var currDate = new Date();
       var minDate = new Date(); 
       minDate.setFullYear(minDate.getFullYear() - parseInt(age,10));
-      var fieldDate = $.asyncValidator.utils.parseDate(r.val());
+      var fieldDate = $.verify.utils.parseDate(r.val());
 
       if(fieldDate === "Invalid Date")
         return "Invalid Date";
@@ -236,7 +236,7 @@
 
   /* Group validation rules
    */
-  $.asyncValidator.addGroupRules({
+  $.verify.addGroupRules({
 
     dateRange: function(r) {
       var start = r.field("start"),
@@ -247,11 +247,11 @@
         return true;
       }
 
-      var startDate = $.asyncValidator.utils.parseDate(start.val());
+      var startDate = $.verify.utils.parseDate(start.val());
       if(!startDate)
         return "Invalid Start Date";
 
-      var endDate = $.asyncValidator.utils.parseDate(end.val());
+      var endDate = $.verify.utils.parseDate(end.val());
       if(!endDate)
         return "Invalid End Date";
 

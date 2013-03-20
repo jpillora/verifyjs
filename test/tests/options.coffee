@@ -20,16 +20,16 @@ describe "Options", ->
   describe "Options - Inheritance", ->
 
     beforeEach ->
-      form1.asyncValidator
+      form1.verify
         errorClass: "warning"
     
-      form2.asyncValidator()
+      form2.verify()
 
-      $.asyncValidator
+      $.verify
         errorClass: "invalid"
 
     it "should have custom option set", ->
-      expect(form1.data('asyncValidator').options.errorClass).to.equal "warning"
+      expect(form1.data('verify').options.errorClass).to.equal "warning"
 
     it "should have global option set", ->
-      expect(form2.data('asyncValidator').options.errorClass).to.equal "invalid"
+      expect(form2.data('verify').options.errorClass).to.equal "invalid"

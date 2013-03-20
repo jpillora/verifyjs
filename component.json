@@ -1,10 +1,10 @@
 {
-  "title": "jQuery Asynchronous Validator",
-  "name": "jquery.async.validator",
+  "title": "Verify.js",
+  "name": "verify",
   "version": "0.0.2",
   "author": {
     "name": "Jaime Pillora"
   },
-  "homepage": "https://github.com/jpillora/jquery.async.validator",
+  "homepage": "https://github.com/jpillora/verify",
   "license": "MIT"
 }

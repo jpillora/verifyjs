@@ -26,10 +26,10 @@ describe "Validators", ->
   beforeEach ->
     $('#konacha').html html
     form = $("form")
-    form.asyncValidator(skipHiddenFields: false)
+    form.verify(skipHiddenFields: false)
 
   afterEach ->
-    form.asyncValidator(false)
+    form.verify(false)
 
   describe "number", ->
     it "should be a number", (done) ->
@@ -94,7 +94,7 @@ describe "Validators", ->
         done()
 
     it "should be valid (NOT required)", (done) ->
-      form.asyncValidator skipNotRequired: true
+      form.verify skipNotRequired: true
       $('#multiOptional').validate (result) ->
         expect(result).to.be.true
         done()

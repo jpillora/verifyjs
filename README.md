@@ -1,8 +1,6 @@
-jQuery Async Validator
+Verify.js
 =====
-v0.0.2
-
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/a0bed67589ba85f50fbcda4bd6652813 "githalytics.com")](http://githalytics.com/jpillora/jquery.async.validator)
+v0.0.1
 
 Summary
 ---
@@ -13,7 +11,7 @@ Optionally includes another plugin - [jQuery prompt](http://www.github.com/jpill
 Full Documentation and Demos
 ---
 
-###http://jpillora.github.com/jquery.async.validator/
+###http://jpillora.github.com/verify/
 
 *Note: These docs are a work in progress.*
 
@@ -22,13 +20,13 @@ Downloads
 
 With `jquery.prompt`
 
-* [Development Version including jquery.prompt](http://jpillora.github.com/jquery.async.validator/dist/jquery.async.validator.prompt.js)
-* [Production Version including jquery.prompt](http://jpillora.github.com/jquery.async.validator/dist/jquery.async.validator.prompt.min.js)
+* [Development Version including jquery.prompt](http://jpillora.github.com/verify/dist/verify.prompt.js)
+* [Production Version including jquery.prompt](http://jpillora.github.com/verify/dist/verify.prompt.min.js)
 
 Without `jquery.prompt`
 
-* [Development Version](http://jpillora.github.com/jquery.async.validator/dist/jquery.async.validator.js)
-* [Production Version](http://jpillora.github.com/jquery.async.validator/dist/jquery.async.validator.min.js)
+* [Development Version](http://jpillora.github.com/verify/dist/verify.js)
+* [Production Version](http://jpillora.github.com/verify/dist/verify.min.js)
 
 Basic Usage
 ---
@@ -39,8 +37,8 @@ Use the following HTML:
 <!-- jQuery -->
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
 
-<!-- jQuery Async Validator (with jQuery Prompt included) -->
-<script src="http://jpillora.github.com/jquery.async.validator/dist/jquery.async.validator.prompt.js"></script>
+<!-- Verify.js (with jQuery Prompt included) -->
+<script src="http://jpillora.github.com/verify/dist/verify.prompt.js"></script>
 
 <form>
   <input value="42" data-validate="number"/>
@@ -51,7 +49,7 @@ Use the following HTML:
 
 Press *submit* and you should see:
 
-![basic usage result](http://jpillora.github.com/jquery.async.validator/demo/demos/quickstart.png)
+![basic usage result](http://jpillora.github.com/verify/demo/demos/quickstart.png)
 
 Todo
 ---
@@ -72,12 +70,9 @@ Thanks to [@posabsolute](https://github.com/posabsolute) as this plugin was orig
 Change Log
 ---
 
-v0.0.2
-
-* Improved Group Validation API
-
 v0.0.1
 
+* Improved Group Validation API
 * Added to jQuery plugin repository
 
 * Released !

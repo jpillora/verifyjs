@@ -14,7 +14,7 @@ describe "Ajax validations", ->
   """
 
   #ajax test validator
-  $.asyncValidator.addFieldRules
+  $.verify.addFieldRules
     testAjax:
       fn: (r) ->
 
@@ -29,7 +29,7 @@ describe "Ajax validations", ->
   beforeEach ->
     $('#konacha').html html
     form = $("form")
-    form.asyncValidator(skipHiddenFields: false)
+    form.verify(skipHiddenFields: false)
 
   describe "On submission", ->
     #valid test
