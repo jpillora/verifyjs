@@ -20,15 +20,22 @@ var Utils = {
       return a;
   },
 
-  //borrowed from lo_dash
-  memoize: function(func, resolver) {
-    var cache = {};
-    return function() {
-      var prop = resolver ?
-        resolver.apply(this, arguments) :
-        Array.prototype.join.call(arguments, '|');
-      return Object.prototype.hasOwnProperty.call(cache, prop) ?
-          cache[prop] : (cache[prop] = func.apply(this, arguments));
+  //memoize.js - by @addyosmani, @philogb, @mathias
+  // with a few useful tweaks from @DmitryBaranovsk
+  memoize: function( fn ) {
+    return function () {
+      var args = Array.prototype.slice.call(arguments),
+      hash = "",
+      i  = args.length;
+      currentArg = null;
+      while(i--){
+        currentArg = args[i];
+        hash += (currentArg === Object(currentArg)) ?
+              JSON.stringify(currentArg) : currentArg;
+        fn.memoize || (fn.memoize = {});
+      }
+      return (hash in fn.memoize) ? fn.memoize[hash] :
+      fn.memoize[hash] = fn.apply( this , args );
     };
   },
 
