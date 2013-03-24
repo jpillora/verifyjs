@@ -4,36 +4,13 @@
     window.alert("Please include verify.js before each rule file");
     return;
   }
-  
-  /* Field validation rules.
-   * - must be in the form:
-   *    <VALIDATOR_NAME>: {
-   *     fn: function(r) {
-   *
-   *        return <TRUE for pass/STRING for fail and display>;
-   *      }
-   *    }
-   * - parameter 'r' is the rule object.
-   *   # it has a callback method used in asynchronous functions
-   *   e.g.
-   *   <VALIDATOR_NAME>: {
-   *     fn: function(r) {
-   *
-   *        <SOME LENGTHY TASK> {
-   *           r.callback(<TRUE for pass/STRING for fail and display>);
-   *        }
-   *
-   *        return undefined; //ASYNC!
-   *      }
-   *    }
-   *  # it gets merged with the object properties e.g. 'r.messages'
-   */
+
   $.verify.addFieldRules({
     /* Regex validators
      * - at plugin load, 'regex' will be transformed into validator function 'fn' which uses 'message'
      */
     currency: {
-      regex: /^\$?\d+(,\d+)*(\.\d+)?$/,
+      regex: /^\$?\-?\d+(,\d+)*(\.\d+)?$/,
       message: "Invalid monetary value"
     },
     email: {
@@ -234,8 +211,7 @@
     }
   });
 
-  /* Group validation rules
-   */
+  // Group validation rules
   $.verify.addGroupRules({
 
     dateRange: function(r) {

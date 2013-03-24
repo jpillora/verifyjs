@@ -211,6 +211,25 @@ var ruleManager = null;
     addRules('group', obj);
   };
 
+  var updateRules = function(obj) {
+
+    var data = {};
+    //check format, insert type
+    for(var name in obj) {
+
+      if(rawRules[name])
+        data[name] = obj[name];
+      else
+        warn("cannot update validator '%s' doesn't exist yet", name);
+
+      //rebuild
+      if(builtRules[name])
+        delete builtRules[name];
+    }
+    
+    $.extend(true, rawRules, data);
+  };
+
   var getRawRule = function(name) {
     return rawRules[name];
   };

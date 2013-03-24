@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/03/21
+/** Verify.js - v0.0.1 - 2013/03/25
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -636,7 +636,7 @@ var TypedSet = Set.extend({
 });
 var Utils = {
 
-  //check options
+  //check options - throws a warning if the option doesn't exist
   checkOptions: function(opts) {
     if(!opts) return;
     for(var key in opts)
@@ -1016,6 +1016,25 @@ var ruleManager = null;
 
   var addGroupRules = function(obj) {
     addRules('group', obj);
+  };
+
+  var updateRules = function(obj) {
+
+    var data = {};
+    //check format, insert type
+    for(var name in obj) {
+
+      if(rawRules[name])
+        data[name] = obj[name];
+      else
+        warn("cannot update validator '%s' doesn't exist yet", name);
+
+      //rebuild
+      if(builtRules[name])
+        delete builtRules[name];
+    }
+    
+    $.extend(true, rawRules, data);
   };
 
   var getRawRule = function(name) {
@@ -1879,6 +1898,7 @@ $.verify = function(options) {
 
 $.extend($.verify, {
   version: VERSION,
+  updateRules: ruleManager.updateRules,
   addRules: ruleManager.addFieldRules,
   addFieldRules: ruleManager.addFieldRules,
   addGroupRules: ruleManager.addGroupRules,
@@ -1912,36 +1932,13 @@ log("plugin added.");
     window.alert("Please include verify.js before each rule file");
     return;
   }
-  
-  /* Field validation rules.
-   * - must be in the form:
-   *    <VALIDATOR_NAME>: {
-   *     fn: function(r) {
-   *
-   *        return <TRUE for pass/STRING for fail and display>;
-   *      }
-   *    }
-   * - parameter 'r' is the rule object.
-   *   # it has a callback method used in asynchronous functions
-   *   e.g.
-   *   <VALIDATOR_NAME>: {
-   *     fn: function(r) {
-   *
-   *        <SOME LENGTHY TASK> {
-   *           r.callback(<TRUE for pass/STRING for fail and display>);
-   *        }
-   *
-   *        return undefined; //ASYNC!
-   *      }
-   *    }
-   *  # it gets merged with the object properties e.g. 'r.messages'
-   */
+
   $.verify.addFieldRules({
     /* Regex validators
      * - at plugin load, 'regex' will be transformed into validator function 'fn' which uses 'message'
      */
     currency: {
-      regex: /^\$?\d+(,\d+)*(\.\d+)?$/,
+      regex: /^\$?\-?\d+(,\d+)*(\.\d+)?$/,
       message: "Invalid monetary value"
     },
     email: {
@@ -2142,8 +2139,7 @@ log("plugin added.");
     }
   });
 
-  /* Group validation rules
-   */
+  // Group validation rules
   $.verify.addGroupRules({
 
     dateRange: function(r) {

@@ -46,6 +46,7 @@ $.verify = function(options) {
 
 $.extend($.verify, {
   version: VERSION,
+  updateRules: ruleManager.updateRules,
   addRules: ruleManager.addFieldRules,
   addFieldRules: ruleManager.addFieldRules,
   addGroupRules: ruleManager.addGroupRules,

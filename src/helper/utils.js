@@ -4,7 +4,7 @@
 
 var Utils = {
 
-  //check options
+  //check options - throws a warning if the option doesn't exist
   checkOptions: function(opts) {
     if(!opts) return;
     for(var key in opts)
