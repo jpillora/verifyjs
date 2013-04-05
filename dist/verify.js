@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/03/25
+/** Verify.js - v0.0.1 - 2013/04/05
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -501,9 +501,9 @@ var globalOptions = {
   showPrompt: true,
   //prompt method,
   prompt: function(element, text, opts) {
-    if($.type($.prompt) === 'function') {
+    if($.type($.notify) === 'function') {
       if(!opts) opts = {color: 'red'};
-      $.prompt(element, text, opts);
+      $.notify(element, text, opts);
     }
   }
 };

@@ -27,9 +27,9 @@ module.exports = (grunt) ->
       " * Copyright (c) <%= grunt.template.today(\"yyyy\") %> <%= pkg.author.name %> - MIT\n"+
       " */\n"
     webget:
-      prompt:
-        src: "http://jpillora.github.com/jquery.prompt/dist/jquery.prompt.js"
-        dest: "src/vendor/jquery.prompt.js"
+      notify:
+        src: "https://raw.github.com/jpillora/notifyjs/master/dist/notify.js"
+        dest: "src/vendor/notify.js"
 
       console:
         src: "http://jpillora.github.com/jquery.console/jquery.console.js"
@@ -44,8 +44,8 @@ module.exports = (grunt) ->
         dest: "dist/<%= pkg.name %>.js"
 
       distPrompt:
-        src: ["src/vendor/jquery.prompt.js"].concat(files)
-        dest: "dist/<%= pkg.name %>.prompt.js"
+        src: ["src/vendor/notify.js"].concat(files)
+        dest: "dist/<%= pkg.name %>.notify.js"
 
     wrap: 
       dist: 
@@ -63,8 +63,8 @@ module.exports = (grunt) ->
         dest: "dist/<%= pkg.name %>.min.js"
 
       distPrompt:
-        src: "dist/<%= pkg.name %>.prompt.js"
-        dest: "dist/<%= pkg.name %>.prompt.min.js"
+        src: "dist/<%= pkg.name %>.notify.js"
+        dest: "dist/<%= pkg.name %>.notify.min.js"
 
     watch:
       scripts:

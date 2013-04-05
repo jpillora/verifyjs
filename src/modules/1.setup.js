@@ -44,9 +44,9 @@ var globalOptions = {
   showPrompt: true,
   //prompt method,
   prompt: function(element, text, opts) {
-    if($.type($.prompt) === 'function') {
+    if($.type($.notify) === 'function') {
       if(!opts) opts = {color: 'red'};
-      $.prompt(element, text, opts);
+      $.notify(element, text, opts);
     }
   }
 };
