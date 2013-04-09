@@ -73,12 +73,17 @@ var FormExecution = null,
     },
 
     executed: function(exec) {
-      this.log(exec.success ? 'Passed' : 'Failed');
-      // this.log('done: ' + (exec.rule ? exec.rule.name+': ' : '') + exec.success);
       this.status = STATUS.COMPLETE;
-      this.skip = exec.skip;
-      this.success = exec.success;
-      this.result = exec.result;
+
+      if(exec) {
+        this.log(exec.success ? 'Passed' : 'Failed');
+        this.skip = exec.skip;
+        this.success = exec.success;
+        this.result = exec.result;
+      } else {
+        this.log('Did not execute');
+        this.success = true;
+      }
 
       if(this.domElem)
         this.domElem.triggerHandler("validated", arguments);
@@ -166,7 +171,7 @@ var FormExecution = null,
       //skip check
       if(this.skipValidations()) {
         this.log("skip");
-      } else if(this.options.skipNotRequired && 
+      } else if(this.options.skipNotRequired &&
                 !ruleParams.required &&
                 !$.trim(this.domElem.val())) {
         this.log("not required");

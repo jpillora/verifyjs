@@ -8,7 +8,7 @@ $.fn.validate = function(callback) {
   if(validator)
     validator.validate(callback);
   else
-    warn("element does not have async validator attached");
+    warn("element does not have verifyjs attached");
 };
 
 $.fn.validate.version = VERSION;

@@ -53,7 +53,7 @@
 
       requiredField: function(r, field) {
         var v = field.val();
-  
+
         switch (field.prop("type")) {
           case "radio":
           case "checkbox":
@@ -129,7 +129,7 @@
       } else {
         console.log("size validator parameter error on field: " + r.field.attr('name'));
       }
-      
+
       return true;
     },
     min: function(r) {
@@ -193,14 +193,14 @@
       return true;
     },
     minAge: function(r){
-      var age = r.args[0];
-      if(!age || isNaN(parseInt(age,10))) {
+      var age = parseInt(r.args[0],10);
+      if(!age || isNaN(age)) {
         console.log("WARNING: Invalid Age Param: " + age);
         return true;
       }
       var currDate = new Date();
-      var minDate = new Date(); 
-      minDate.setFullYear(minDate.getFullYear() - parseInt(age,10));
+      var minDate = new Date();
+      minDate.setFullYear(minDate.getFullYear() - age);
       var fieldDate = $.verify.utils.parseDate(r.val());
 
       if(fieldDate === "Invalid Date")

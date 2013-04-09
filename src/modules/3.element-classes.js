@@ -74,6 +74,7 @@ var ValidationForm = null;
     //for use with $(field).validate(callback);
     validate: function(callback) {
       (new FieldExecution(this)).execute().always(function(exec) {
+        if(!exec) exec = { success: true };
         if(callback) callback(exec.success, exec.result);
       });
       return undefined;
@@ -295,6 +296,7 @@ var ValidationForm = null;
       this.updateFields();
 
       (new FormExecution(this)).execute().always(function(exec) {
+        if(!exec) exec = { success: true };
         if(callback) callback(exec.success, exec.result);
       });
       return undefined;

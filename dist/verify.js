@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/04/05
+/** Verify.js - v0.0.1 - 2013/04/09
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -926,6 +926,7 @@ var ValidationForm = null;
     //for use with $(field).validate(callback);
     validate: function(callback) {
       (new FieldExecution(this)).execute().always(function(exec) {
+        if(!exec) exec = { success: true };
         if(callback) callback(exec.success, exec.result);
       });
       return undefined;
@@ -1147,6 +1148,7 @@ var ValidationForm = null;
       this.updateFields();
 
       (new FormExecution(this)).execute().always(function(exec) {
+        if(!exec) exec = { success: true };
         if(callback) callback(exec.success, exec.result);
       });
       return undefined;
@@ -1246,12 +1248,17 @@ var FormExecution = null,
     },
 
     executed: function(exec) {
-      this.log(exec.success ? 'Passed' : 'Failed');
-      // this.log('done: ' + (exec.rule ? exec.rule.name+': ' : '') + exec.success);
       this.status = STATUS.COMPLETE;
-      this.skip = exec.skip;
-      this.success = exec.success;
-      this.result = exec.result;
+
+      if(exec) {
+        this.log(exec.success ? 'Passed' : 'Failed');
+        this.skip = exec.skip;
+        this.success = exec.success;
+        this.result = exec.result;
+      } else {
+        this.log('Did not execute');
+        this.success = true;
+      }
 
       if(this.domElem)
         this.domElem.triggerHandler("validated", arguments);
@@ -1339,7 +1346,7 @@ var FormExecution = null,
       //skip check
       if(this.skipValidations()) {
         this.log("skip");
-      } else if(this.options.skipNotRequired && 
+      } else if(this.options.skipNotRequired &&
                 !ruleParams.required &&
                 !$.trim(this.domElem.val())) {
         this.log("not required");
@@ -1609,7 +1616,7 @@ $.fn.validate = function(callback) {
   if(validator)
     validator.validate(callback);
   else
-    warn("element does not have async validator attached");
+    warn("element does not have verifyjs attached");
 };
 
 $.fn.validate.version = VERSION;
@@ -1730,7 +1737,7 @@ log("plugin added.");
 
       requiredField: function(r, field) {
         var v = field.val();
-  
+
         switch (field.prop("type")) {
           case "radio":
           case "checkbox":
@@ -1806,7 +1813,7 @@ log("plugin added.");
       } else {
         console.log("size validator parameter error on field: " + r.field.attr('name'));
       }
-      
+
       return true;
     },
     min: function(r) {
@@ -1870,14 +1877,14 @@ log("plugin added.");
       return true;
     },
     minAge: function(r){
-      var age = r.args[0];
-      if(!age || isNaN(parseInt(age,10))) {
+      var age = parseInt(r.args[0],10);
+      if(!age || isNaN(age)) {
         console.log("WARNING: Invalid Age Param: " + age);
         return true;
       }
       var currDate = new Date();
-      var minDate = new Date(); 
-      minDate.setFullYear(minDate.getFullYear() - parseInt(age,10));
+      var minDate = new Date();
+      minDate.setFullYear(minDate.getFullYear() - age);
       var fieldDate = $.verify.utils.parseDate(r.val());
 
       if(fieldDate === "Invalid Date")
