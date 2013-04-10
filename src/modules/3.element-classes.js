@@ -19,7 +19,7 @@ var ValidationForm = null;
 
       this.domElem = domElem;
       this.bindAll();
-      this.name = this.domElem.attr('name') || 
+      this.name = this.domElem.attr('name') ||
                   this.domElem.attr('id') ||
                   guid();
       this.execution = null;
@@ -86,13 +86,17 @@ var ValidationForm = null;
       //manage this field within shared groups
       for(var i = 0; i < this.rules.length; ++i) {
         var r = this.rules[i];
+        //skip uninitialised and field rules
         if(!r.rule) continue;
         if(r.rule.type !== 'group') continue;
+        //shared groups map
         if(!this.groups[r.name])
           this.groups[r.name] = {};
+        //calculate scope
         var scope = r.scope || 'default';
         if(!this.groups[r.name][scope])
           this.groups[r.name][scope] = new TypedSet(ValidationField);
+        //add self to group
         this.groups[r.name][scope].add(this);
       }
     },

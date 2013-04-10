@@ -148,10 +148,10 @@
     decimal: function(r) {
       var vStr = r.val(),
           places = r.args[0] ? parseInt(r.args[0], 10) : 2;
-    
+
       if(!vStr.match(/^\d+(,\d{3})*(\.\d+)?$/))
         return "Invalid decimal value";
-  
+
       var v = parseFloat(vStr.replace(/[^\d\.]/g,'')),
           factor = Math.pow(10,places);
 
