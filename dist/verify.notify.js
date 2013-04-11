@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/04/10
+/** Verify.js - v0.0.1 - 2013/04/11
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -146,8 +146,9 @@ Notification = (function() {
     return insertCSS(style);
   };
 
-  Notification.prototype.loadHTML = function(style) {
-    style = this.getStyle(name);
+  Notification.prototype.loadHTML = function() {
+    var style;
+    style = this.getStyle();
     this.userContainer = $(style.html);
     this.text = this.userContainer.find('[data-notify=text]');
     if (this.text.length === 0) {
