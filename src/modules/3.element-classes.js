@@ -99,6 +99,12 @@ var ValidationForm = null;
         //add self to group
         this.groups[r.name][scope].add(this);
       }
+
+      if(typeof this.options.reskinContainer === 'function')
+        this.reskinElem = this.options.reskinContainer(this.domElem);
+      else
+        this.reskinElem = this.domElem;
+
     },
 
     handleResult: function(exec) {

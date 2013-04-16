@@ -24,16 +24,20 @@ var globalOptions = {
   focusFirstField: true,
   // Hide error while the user is changing
   hideErrorOnChange: false,
-  // Whether to skip the hidden fields with validators
+  // Whether to skip the hidden fields
   skipHiddenFields: true,
+  // Whether to skip the hidden fields
+  skipDisabledFields: true,
   // Whether to skip empty fields that aren't required
-  skipNotRequired: false,
+  skipNotRequired: true,
   // What class name to apply to the 'errorContainer'
   errorClass: "error",
   // Filter method to find element to apply error class (default: the input)
   errorContainer: function (e) {
     return e;
   },
+  // Filter method to find element which reskins the current element
+  reskinContainer: null,
   //Before form-submit hook
   beforeSubmit: function(e, result) {
     return result;

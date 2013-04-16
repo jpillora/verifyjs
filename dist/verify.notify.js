@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/04/11
+/** Verify.js - v0.0.1 - 2013/04/16
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -851,16 +851,20 @@ var globalOptions = {
   focusFirstField: true,
   // Hide error while the user is changing
   hideErrorOnChange: false,
-  // Whether to skip the hidden fields with validators
+  // Whether to skip the hidden fields
   skipHiddenFields: true,
+  // Whether to skip the hidden fields
+  skipDisabledFields: true,
   // Whether to skip empty fields that aren't required
-  skipNotRequired: false,
+  skipNotRequired: true,
   // What class name to apply to the 'errorContainer'
   errorClass: "error",
   // Filter method to find element to apply error class (default: the input)
   errorContainer: function (e) {
     return e;
   },
+  // Filter method to find element which reskins the current element
+  reskinContainer: null,
   //Before form-submit hook
   beforeSubmit: function(e, result) {
     return result;
@@ -1321,6 +1325,12 @@ var ValidationForm = null;
         //add self to group
         this.groups[r.name][scope].add(this);
       }
+
+      if(typeof this.options.reskinContainer === 'function')
+        this.reskinElem = this.options.reskinContainer(this.domElem);
+      else
+        this.reskinElem = this.domElem;
+
     },
 
     handleResult: function(exec) {
@@ -1661,8 +1671,7 @@ var FormExecution = null,
     skipValidations: function() {
       //custom-form-elements.js hidden fields
       if(this.element.form.options.skipHiddenFields &&
-        ((!this.domElem.hasClass("styled") && this.domElem.is(':hidden')) ||
-         (this.domElem.hasClass("styled") && this.domElem.parents(":hidden").length > 0)))
+         this.element.reskinElem.is(':hidden'))
         return true;
       //skip disabled
       if(this.domElem.is('[disabled]'))
@@ -1726,7 +1735,7 @@ var FormExecution = null,
         this.log("not required");
       } else if(ruleParams.length === 0) {
         this.log("no validators");
-      
+
       //ready!
       } else {
         this.children = $.map(ruleParams, $.proxy(function(r) {
@@ -1755,7 +1764,7 @@ var FormExecution = null,
       this._super(exec);
       this.element.handleResult(exec);
     }
-    
+
   });
 
   //set in private scope
@@ -1841,13 +1850,13 @@ var FormExecution = null,
     //into an array of elems and errors
     transformResult: function() {
       if(typeof this.result === 'string')
-        this.result = [{ 
-          domElem: this.element.domElem,
+        this.result = [{
+          domElem: this.element.reskinElem,
           result: this.result
         }];
       else if(!$.isArray(this.result))
-        this.result = [{ 
-          domElem: this.element.domElem,
+        this.result = [{
+          domElem: this.element.reskinElem,
           result: null
         }];
     }
@@ -1974,7 +1983,7 @@ var FormExecution = null,
           result = this.result[exec.id];
 
         list.push({
-          domElem: exec.element.domElem,
+          domElem: exec.element.reskinElem,
           result: result
         });
       }
@@ -1984,7 +1993,7 @@ var FormExecution = null,
 
   });
 
-})(); 
+})();
 $.fn.validate = function(callback) {
   var validator = $(this).data('verify');
   if(validator)

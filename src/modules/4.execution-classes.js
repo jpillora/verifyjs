@@ -112,8 +112,7 @@ var FormExecution = null,
     skipValidations: function() {
       //custom-form-elements.js hidden fields
       if(this.element.form.options.skipHiddenFields &&
-        ((!this.domElem.hasClass("styled") && this.domElem.is(':hidden')) ||
-         (this.domElem.hasClass("styled") && this.domElem.parents(":hidden").length > 0)))
+         this.element.reskinElem.is(':hidden'))
         return true;
       //skip disabled
       if(this.domElem.is('[disabled]'))
@@ -177,7 +176,7 @@ var FormExecution = null,
         this.log("not required");
       } else if(ruleParams.length === 0) {
         this.log("no validators");
-      
+
       //ready!
       } else {
         this.children = $.map(ruleParams, $.proxy(function(r) {
@@ -206,7 +205,7 @@ var FormExecution = null,
       this._super(exec);
       this.element.handleResult(exec);
     }
-    
+
   });
 
   //set in private scope
@@ -292,13 +291,13 @@ var FormExecution = null,
     //into an array of elems and errors
     transformResult: function() {
       if(typeof this.result === 'string')
-        this.result = [{ 
-          domElem: this.element.domElem,
+        this.result = [{
+          domElem: this.element.reskinElem,
           result: this.result
         }];
       else if(!$.isArray(this.result))
-        this.result = [{ 
-          domElem: this.element.domElem,
+        this.result = [{
+          domElem: this.element.reskinElem,
           result: null
         }];
     }
@@ -425,7 +424,7 @@ var FormExecution = null,
           result = this.result[exec.id];
 
         list.push({
-          domElem: exec.element.domElem,
+          domElem: exec.element.reskinElem,
           result: result
         });
       }
@@ -435,4 +434,4 @@ var FormExecution = null,
 
   });
 
-})(); 
+})();
