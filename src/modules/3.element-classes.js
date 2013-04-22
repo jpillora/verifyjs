@@ -69,6 +69,7 @@ var ValidationForm = null;
       this.options = form.options;
       this.groups = form.groups;
       this.ruleNames = null;
+      this.touched = false;
     },
 
     //for use with $(field).validate(callback);

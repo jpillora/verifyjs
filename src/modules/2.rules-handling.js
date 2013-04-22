@@ -130,6 +130,7 @@ var Rule = BaseClass.extend({
       objs.push(this.defaultGroupInterface);
 
     objs.push({
+      prompt: exec.element.options.prompt,
       form:  exec.element.form.domElem,
       callback: exec.callback,
       args: exec.args,
@@ -260,26 +261,32 @@ var ruleManager = null;
 
     var required = false,
         type = null,
+        attrResults = null,
         results = [];
 
     if(element.type !== 'ValidationField')
       return warn("Cannot get rules from invalid type");
 
-    if(!element.domElem) return [];
+    if(!element.domElem)
+      return results;
 
-    results = this.parseAttribute(element);
+    attrResults = this.parseAttribute(element);
 
-    if(!results) return [];
+    if(!attrResults || !attrResults.length)
+      return results;
 
     //add rule instances
-    results = $.map(results, function(result) {
+    $.each(attrResults, function(i, result) {
       //special required case
       if(result.name === 'required')
         required = true;
 
       result.rule = getRule(result.name);
-      return result;
+
+      if(result.rule)
+        results.push(result);
     });
+
     results.required = required;
     return results;
   };

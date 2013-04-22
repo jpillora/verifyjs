@@ -1,7 +1,7 @@
 #=require ./index
 
 #EXTENDING TESTS
-describe "Extending validations", ->
+describe "Extending validation rules", ->
 
   form = null
   html = """

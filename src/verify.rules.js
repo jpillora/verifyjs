@@ -58,12 +58,19 @@
           case "radio":
           case "checkbox":
             var name = field.attr("name");
-            if (r.form.find("input[name='" + name + "']:checked").size() === 0) {
-              if (r.form.find("input[name='" + name + "']").size() === 1)
-                return r.messages.checkboxSingle;
-              else
-                return r.messages.checkboxMultiple;
+            var group = field.data('fieldGroup');
+
+            if(!group) {
+              group = r.form.find("input[name='" + name + "']");
+              field.data('fieldGroup', group);
             }
+
+            if (group.is(":checked"))
+              break;
+            if (group.size() === 1)
+              return r.messages.single;
+            else
+              return r.messages.multiple;
             break;
 
           default:
@@ -75,8 +82,8 @@
       },
       messages: {
         "all": "This field is required",
-        "checkboxMultiple": "Please select an option",
-        "checkboxSingle": "This checkbox is required"
+        "multiple": "Please select an option",
+        "single": "This checkbox is required"
       }
     },
     regex: {
@@ -91,14 +98,18 @@
         }
 
         if(!r.val().match(re))
-          return r.message || "Invalid Format";
+          return r.args[1] || r.message;
         return true;
       },
       message: "Invalid format"
     },
+    //an alias
+    pattern: {
+      extend: 'regex'
+    },
     asyncTest: function(r) {
 
-      r.prompt("Please wait...");
+      r.prompt(r.field, "Please wait...");
       setTimeout(function() {
         r.callback();
       },2000);
@@ -127,7 +138,7 @@
         if(v.length < lower || upper < v.length)
           return "Must be between "+lower+" and "+upper+" characters";
       } else {
-        console.log("size validator parameter error on field: " + r.field.attr('name'));
+        r.warn("size validator parameter error on field: " + r.field.attr('name'));
       }
 
       return true;
@@ -160,7 +171,7 @@
 
       return true;
     },
-    min_val: function(r) {
+    minVal: function(r) {
       var v = parseFloat(r.val().replace(/[^\d\.]/g,'')),
           suffix = r.args[1] || '',
           min = parseFloat(r.args[0]);
@@ -168,7 +179,7 @@
         return "Must be greater than " + min + suffix;
       return true;
     },
-    max_val: function(r) {
+    maxVal: function(r) {
       var v = parseFloat(r.val().replace(/[^\d\.]/g,'')),
           suffix = r.args[1] || '',
           max = parseFloat(r.args[0]);
@@ -176,7 +187,7 @@
         return "Must be less than " + max + suffix;
       return true;
     },
-    range_val: function(r) {
+    rangeVal: function(r) {
       var v = parseFloat(r.val().replace(/[^\d\.]/g,'')),
           prefix = r.args[2] || '',
           suffix = r.args[3] || '',
@@ -235,6 +246,33 @@
         return "Start Date must come before End Date";
 
       return true;
+    },
+
+    requiredAll: {
+      extend: 'required',
+      fn: function(r) {
+
+        var size = r.fields().length,
+            message,
+            passes = [], fails = [];
+
+        r.fields().each(function(i, field) {
+          message = r.requiredField(r, field);
+          if(message === true)
+            passes.push(field);
+          else
+            fails.push({ field: field, message:message });
+        });
+
+        if(passes.length > 0 && fails.length > 0) {
+          $.each(fails, function(i, f) {
+            r.prompt(f.field, f.message);
+          });
+          return false;
+        }
+
+        return true;
+      }
     }
 
   });

@@ -1,7 +1,7 @@
 #=require ./index
 
 #BASIC TESTS
-describe "Validators", ->
+describe "Validation rules", ->
 
   form = null
   html = """

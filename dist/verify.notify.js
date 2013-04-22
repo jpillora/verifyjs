@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/04/16
+/** Verify.js - v0.0.1 - 2013/04/22
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -1060,6 +1060,7 @@ var Rule = BaseClass.extend({
       objs.push(this.defaultGroupInterface);
 
     objs.push({
+      prompt: exec.element.options.prompt,
       form:  exec.element.form.domElem,
       callback: exec.callback,
       args: exec.args,
@@ -1190,26 +1191,32 @@ var ruleManager = null;
 
     var required = false,
         type = null,
+        attrResults = null,
         results = [];
 
     if(element.type !== 'ValidationField')
       return warn("Cannot get rules from invalid type");
 
-    if(!element.domElem) return [];
+    if(!element.domElem)
+      return results;
 
-    results = this.parseAttribute(element);
+    attrResults = this.parseAttribute(element);
 
-    if(!results) return [];
+    if(!attrResults || !attrResults.length)
+      return results;
 
     //add rule instances
-    results = $.map(results, function(result) {
+    $.each(attrResults, function(i, result) {
       //special required case
       if(result.name === 'required')
         required = true;
 
       result.rule = getRule(result.name);
-      return result;
+
+      if(result.rule)
+        results.push(result);
     });
+
     results.required = required;
     return results;
   };
@@ -1295,6 +1302,7 @@ var ValidationForm = null;
       this.options = form.options;
       this.groups = form.groups;
       this.ruleNames = null;
+      this.touched = false;
     },
 
     //for use with $(field).validate(callback);
@@ -1581,7 +1589,7 @@ var FormExecution = null,
     type: "Execution",
 
     init: function(element, parent) {
-      //corresponding <Form|Fieldset|Field>Element class
+      //corresponding <Form|Field>Element class
       this.element = element;
       if(element) {
         element.execution = this;
@@ -1635,10 +1643,10 @@ var FormExecution = null,
       this.status = STATUS.COMPLETE;
 
       if(exec) {
-        this.log(exec.success ? 'Passed' : 'Failed');
         this.skip = exec.skip;
         this.success = exec.success;
         this.result = exec.result;
+        this.log(exec.success ? 'Passed' : 'Failed');//, this.result);
       } else {
         this.log('Did not execute');
         this.success = true;
@@ -1652,6 +1660,15 @@ var FormExecution = null,
         this.errors.push({domElem: this.element, msg: this.result});
     },
 
+    Deferred: function() {
+      this.d = $.Deferred();
+      this.d.__reject = this.d.reject;
+      this.d.__resolve = this.d.resolve;
+      this.d.reject = this.d.resolve = function() {
+        console.error("Use execution.resolve|reject()");
+      };
+    },
+
     //resolves or rejects the execution's deferred object 'd'
     resolve: function() {
       return this.resolveOrReject(true);
@@ -1660,7 +1677,7 @@ var FormExecution = null,
       return this.resolveOrReject(false);
     },
     resolveOrReject: function(resolve) {
-      var fn = resolve ? 'resolve' : 'reject';
+      var fn = resolve ? '__resolve' : '__reject';
       if(!this.d || !this.d[fn]) throw "Invalid Deferred Object";
       this.success = !!resolve;
       this.nextTick(this.d[fn], [this], 0);
@@ -1716,6 +1733,7 @@ var FormExecution = null,
       this._super(field, parent);
       if(parent instanceof FormExecution)
         this.formExecution = parent;
+      field.touched = true;
       this.children = [];
     },
 
@@ -1752,7 +1770,7 @@ var FormExecution = null,
       //pass when skipping
       this.skip = this.d === null;
       if(this.d === null) {
-        this.d = $.Deferred();
+        this.Deferred();
         this.resolve();
       }
 
@@ -1774,7 +1792,7 @@ var FormExecution = null,
     init: function(ruleParamObj, parent) {
       this._super(null, parent);
 
-      this.d = $.Deferred();
+      this.Deferred();
       this.d.always(this.executed);
 
       this.rule = ruleParamObj.rule;
@@ -1789,7 +1807,7 @@ var FormExecution = null,
     callback: function(result) {
       clearTimeout(this.t);
       this.callbackCount++;
-      // this.log("callback #" + this.callbackCount + " with: " + result);
+      this.log("callback #" + this.callbackCount + " with: " + result);
       if(this.callbackCount > 1) return;
 
       if(result === undefined)
@@ -1831,7 +1849,8 @@ var FormExecution = null,
       } catch(e) {
         this.skip = true;
         result = true;
-        console.error("Error caught in validation rule: '" + this.rule.name + "', skipping.\nERROR: " + e.toString() + "\nSTACK:" + e.stack);
+        console.error("Error caught in validation rule: '" + this.rule.name +
+                      "', skipping.\nERROR: " + e.toString() + "\nSTACK:" + e.stack);
       }
 
       //used return statement
@@ -1876,19 +1895,54 @@ var FormExecution = null,
 
     execute: function() {
 
-      var groupSet = this.element.groups[this.group][this.scope];
+      var groupSet = this.element.groups[this.group][this.scope],
+          groupSize = groupSet.size(),
+          members = [], _this = this, i, j, field, exec, child;
+
+      //TODO set master refs
+      //wait for master - it will trigger resolve/reject
+      if(this.masterExec) {
+        this.log("WAIT");
+        return this.d.promise();
+      }
 
       if(!groupSet)
         throw "Missing Group Set";
-      if(groupSet.size() === 1)
+      if(groupSize === 1)
         this.warn("Group only has 1 field. Consider a field rule.");
 
-      this.getMembers(groupSet);
+      //
+      for(i = 0; i < groupSet.size(); ++i) {
+        field = groupSet.get(i);
 
-      this.realExecute = $.proxy(this._super, this);
-      return this.parent.formExecution ?
-        this.executeAll() :
-        this.executeOne();
+        //let the user make their way onto 
+        // the field first - silent fail!
+        if(!field.touched)
+          return this.reject();
+
+        exec = field.execution;
+
+        //exec not started - start !
+        if(!exec || !exec.children.length) {
+
+          exec = new FieldExecution();
+          // NEW FIELD EXECUTION
+        }
+
+        //find member group exec in field exec 
+        for(j = 0; j < exec.children.length; ++j) {
+          child = exec.children[j];
+
+          if(this.isMember(child))
+            members.push(child);
+        }
+
+      }
+
+      this.log("RUN");
+      $.each(this.members, this.linkExec);
+
+      return this._super();
     },
 
     //ensures that another execution is a member the group
@@ -1898,70 +1952,16 @@ var FormExecution = null,
              this.scope === that.scope;
     },
 
-    //gets an array of sibling executions which are ready to be linked
-    getMembers: function(groupSet) {
-      var ready = true, members = [], _this = this;
-      //get all fields in the group
-      groupSet.each(function(field) {
-        //get field's current execution
-        var f = field.execution;
-        //no rules to check
-        if(!f || !f.children.length)
-          ready = false;
-        //check child rule execs
-        var last = null;
-        if(ready)
-        $.each(f.children, function(i, rule) {
-          if(_this.isMember(rule)) {
-            members.push(rule);
-            //mark not ready if rule prior was incomplete or failed
-            if(last && (last.status !== STATUS.COMPLETE || !last.success)) {
-              ready = false;
-              return false;
-            }
-          }
-          last = rule;
-        });
-        //only keep checking if not cancelled
-        return ready;
-      });
-
-      this.members = ready ? members : null;
-    },
-
-    //if run from editing the field
-    //only trigger others if each sibling's last execution got up to the group
-    executeOne: function(execute) {
-      if(this.members)
-        return this.realExecute();
-      //mark skipped
-      this.skip = true;
-      return this.reject();
-    },
-
-    //if run from the form
-    //wait for other fields, cancel if others fail before reaching the group
-    executeAll: function() {
-      // console.log("ALL");
-      if(this.members) {
-        // console.log("RUN");
-        $.each(this.members, this.linkExec);
-        return this.realExecute();
-      }
-      // console.log("WAIT");
-      //not ready - wait for others
-      return this.d.promise();
-    },
-
     linkExec: function(i, rule) {
       if(this === rule) return;
+      rule.masterExec = this;
       //use the status of this group
       //as the status of each linked
-      this.d.done(rule.d.resolve);
-      this.d.fail(rule.d.reject);
+      this.d.done(rule.resolve);
+      this.d.fail(rule.reject);
       //silent fail if one of the linked fields' rules
       //fails prior to reaching the group validation
-      rule.parent.d.fail(this.d.reject);
+      rule.parent.d.fail(this.reject);
     },
 
     //override and add an extra
@@ -2125,12 +2125,19 @@ log("plugin added.");
           case "radio":
           case "checkbox":
             var name = field.attr("name");
-            if (r.form.find("input[name='" + name + "']:checked").size() === 0) {
-              if (r.form.find("input[name='" + name + "']").size() === 1)
-                return r.messages.checkboxSingle;
-              else
-                return r.messages.checkboxMultiple;
+            var group = field.data('fieldGroup');
+
+            if(!group) {
+              group = r.form.find("input[name='" + name + "']");
+              field.data('fieldGroup', group);
             }
+
+            if (group.is(":checked"))
+              break;
+            if (group.size() === 1)
+              return r.messages.single;
+            else
+              return r.messages.multiple;
             break;
 
           default:
@@ -2142,8 +2149,8 @@ log("plugin added.");
       },
       messages: {
         "all": "This field is required",
-        "checkboxMultiple": "Please select an option",
-        "checkboxSingle": "This checkbox is required"
+        "multiple": "Please select an option",
+        "single": "This checkbox is required"
       }
     },
     regex: {
@@ -2158,14 +2165,18 @@ log("plugin added.");
         }
 
         if(!r.val().match(re))
-          return r.message || "Invalid Format";
+          return r.args[1] || r.message;
         return true;
       },
       message: "Invalid format"
     },
+    //an alias
+    pattern: {
+      extend: 'regex'
+    },
     asyncTest: function(r) {
 
-      r.prompt("Please wait...");
+      r.prompt(r.field, "Please wait...");
       setTimeout(function() {
         r.callback();
       },2000);
@@ -2194,7 +2205,7 @@ log("plugin added.");
         if(v.length < lower || upper < v.length)
           return "Must be between "+lower+" and "+upper+" characters";
       } else {
-        console.log("size validator parameter error on field: " + r.field.attr('name'));
+        r.warn("size validator parameter error on field: " + r.field.attr('name'));
       }
 
       return true;
@@ -2227,7 +2238,7 @@ log("plugin added.");
 
       return true;
     },
-    min_val: function(r) {
+    minVal: function(r) {
       var v = parseFloat(r.val().replace(/[^\d\.]/g,'')),
           suffix = r.args[1] || '',
           min = parseFloat(r.args[0]);
@@ -2235,7 +2246,7 @@ log("plugin added.");
         return "Must be greater than " + min + suffix;
       return true;
     },
-    max_val: function(r) {
+    maxVal: function(r) {
       var v = parseFloat(r.val().replace(/[^\d\.]/g,'')),
           suffix = r.args[1] || '',
           max = parseFloat(r.args[0]);
@@ -2243,7 +2254,7 @@ log("plugin added.");
         return "Must be less than " + max + suffix;
       return true;
     },
-    range_val: function(r) {
+    rangeVal: function(r) {
       var v = parseFloat(r.val().replace(/[^\d\.]/g,'')),
           prefix = r.args[2] || '',
           suffix = r.args[3] || '',
@@ -2302,6 +2313,33 @@ log("plugin added.");
         return "Start Date must come before End Date";
 
       return true;
+    },
+
+    requiredAll: {
+      extend: 'required',
+      fn: function(r) {
+
+        var size = r.fields().length,
+            message,
+            passes = [], fails = [];
+
+        r.fields().each(function(i, field) {
+          message = r.requiredField(r, field);
+          if(message === true)
+            passes.push(field);
+          else
+            fails.push({ field: field, message:message });
+        });
+
+        if(passes.length > 0 && fails.length > 0) {
+          $.each(fails, function(i, f) {
+            r.prompt(f.field, f.message);
+          });
+          return false;
+        }
+
+        return true;
+      }
     }
 
   });
