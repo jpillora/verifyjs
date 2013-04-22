@@ -45,10 +45,12 @@ var FormExecution = null,
 
     //execute in sequence, stop on fail
     serialize: function(executables) {
-      this.d = $.Deferred.serialize(
-        $.map(executables, function(e) {
-          return $.isFunction(e) ? e : e.execute;
-        })
+      this.d = this.restrictDeferred(
+        $.Deferred.serialize(
+          $.map(executables, function(e) {
+            return $.isFunction(e) ? e : e.execute;
+          })
+        )
       );
       if(!this.d) throw "Invalid executable";
       return this.d.promise();
@@ -56,17 +58,19 @@ var FormExecution = null,
     },
     //execute all at once,
     parallelize: function(executables) {
-      this.d = $.Deferred.parallelize(
-        $.map(executables, function(e) {
-          return $.isFunction(e) ? e : e.execute;
-        })
+      this.d = this.restrictDeferred(
+        $.Deferred.parallelize(
+          $.map(executables, function(e) {
+            return $.isFunction(e) ? e : e.execute;
+          })
+        )
       );
       if(!this.d) throw "Invalid executable";
       return this.d.promise();
     },
 
     execute: function() {
-      // this.log('execute', true);
+      this.log('executing...');
       this.status = STATUS.RUNNING;
       if(this.domElem)
         this.domElem.triggerHandler("validating");
@@ -94,12 +98,17 @@ var FormExecution = null,
     },
 
     Deferred: function() {
-      this.d = $.Deferred();
-      this.d.__reject = this.d.reject;
-      this.d.__resolve = this.d.resolve;
-      this.d.reject = this.d.resolve = function() {
+      this.d = this.restrictDeferred();
+    },
+
+    restrictDeferred: function(d) {
+      if(!d) d = $.Deferred();
+      d.__reject = d.reject;
+      d.__resolve = d.resolve;
+      d.reject = d.resolve = function() {
         console.error("Use execution.resolve|reject()");
       };
+      return d;
     },
 
     //resolves or rejects the execution's deferred object 'd'
@@ -330,11 +339,13 @@ var FormExecution = null,
 
       var groupSet = this.element.groups[this.group][this.scope],
           groupSize = groupSet.size(),
-          members = [], _this = this, i, j, field, exec, child;
+          _this = this, i, j, field, exec, child;
+
+      this.members = [];
 
       //TODO set master refs
       //wait for master - it will trigger resolve/reject
-      if(this.masterExec) {
+      if(this.parent && this.parent.parent instanceof GroupRuleExecution) {
         this.log("WAIT");
         return this.d.promise();
       }
@@ -357,9 +368,9 @@ var FormExecution = null,
 
         //exec not started - start !
         if(!exec || !exec.children.length) {
-
-          exec = new FieldExecution();
-          // NEW FIELD EXECUTION
+          this.log("STARTING ", field.name);
+          exec = new FieldExecution(field, this);
+          exec.execute();
         }
 
         //find member group exec in field exec 
@@ -367,7 +378,7 @@ var FormExecution = null,
           child = exec.children[j];
 
           if(this.isMember(child))
-            members.push(child);
+            this.members.push(child);
         }
 
       }
@@ -394,7 +405,8 @@ var FormExecution = null,
       this.d.fail(rule.reject);
       //silent fail if one of the linked fields' rules
       //fails prior to reaching the group validation
-      rule.parent.d.fail(this.reject);
+      if(rule.parent)
+        rule.parent.d.fail(this.reject);
     },
 
     //override and add an extra
