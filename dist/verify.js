@@ -150,7 +150,7 @@ var guid = function() {
   return (((1 + Math.random()) * 65536) | 0).toString(16).substring(1);
 };
 $.fn.scrollView = function(onComplete) {
-  
+
   var field = $(this).first();
   if(field.length === 1) {
     if(field.is(".styled")) field = field.siblings("span");
@@ -174,53 +174,7 @@ $.fn.equals = function(that) {
   return true;
 };
 
-$.Deferred.serialize = function(fns) {
-  if(!$.isArray(fns) || fns.length === 0)
-    return $.Deferred().resolve().promise();
 
-  var pipeline = fns[0](),
-      i = 1, l = fns.length;
-
-  if(!pipeline || !pipeline.pipe)
-    throw "Invalid Deferred Object";
-
-  for(;i < l;i++)
-    pipeline = pipeline.pipe(fns[i]);
-
-  return pipeline;
-};
-
-$.Deferred.parallelize = function(fns) {
-
-  var d = $.Deferred(),
-      n = 0, i = 0, l = fns.length,
-      rejected = false;
-
-  if(!$.isArray(fns) || l === 0)
-    return d.resolve();
-
-  function pass(result) {
-    n++;
-    if(n === l) d.resolve(result);
-  }
-
-  function fail(result) {
-    if(rejected) return;
-    rejected = true;
-    d.reject(result);
-  }
-
-  //execute all at once
-  for(; i<l; ++i ) {
-    var dd = fns[i]();
-    if(!dd || !dd.done || !dd.fail)
-      throw "Invalid Deferred Object";
-    dd.done(pass).fail(fail);
-  }
-    
-
-  return d.promise();
-};
 // Inspired by base2 and Prototype
 
 var Class = null;
@@ -1233,37 +1187,83 @@ var FormExecution = null,
       this.errorField = null;
       this.errors = [];
       this.bindAll();
-    },
 
+      //deferred object
+      this.d = this.restrictDeferred();
+      this.d.always(this.executed);
+    },
 
     toString: function() {
       return this._super() + (this.element || this.rule).toString();
     },
 
     //execute in sequence, stop on fail
-    serialize: function(executables) {
-      this.d = this.restrictDeferred(
-        $.Deferred.serialize(
-          $.map(executables, function(e) {
-            return $.isFunction(e) ? e : e.execute;
-          })
-        )
-      );
-      if(!this.d) throw "Invalid executable";
-      return this.d.promise();
+    serialize: function(objs) {
 
-    },
-    //execute all at once,
-    parallelize: function(executables) {
-      this.d = this.restrictDeferred(
-        $.Deferred.parallelize(
-          $.map(executables, function(e) {
-            return $.isFunction(e) ? e : e.execute;
-          })
-        )
-      );
-      if(!this.d) throw "Invalid executable";
+      var fns = this.mapExecutables(objs);
+
+      if(!$.isArray(fns) || fns.length === 0)
+        return this.resolve();
+
+      var pipeline = fns[0](),
+          i = 1, l = fns.length;
+
+      this.log("SERIALIZE", l);
+
+      if(!pipeline || !pipeline.pipe)
+        throw "Invalid Deferred Object";
+
+      for(;i < l;i++)
+        pipeline = pipeline.pipe(fns[i]);
+
+      //link pipeline
+      pipeline.done(this.resolve).fail(this.reject);
+
       return this.d.promise();
+    },
+
+    //execute all at once,
+    parallelize: function(objs) {
+
+      var fns = this.mapExecutables(objs);
+
+      var _this = this,
+          n = 0, i = 0, l = fns.length,
+          rejected = false;
+
+      this.log("PARALLELIZE", l);
+
+      if(!$.isArray(fns) || l === 0)
+        return this.resolve();
+
+      function pass(result) {
+        n++;
+        if(n === l) this.resolve(result);
+      }
+
+      function fail(result) {
+        if(rejected) return;
+        rejected = true;
+        this.reject(result);
+      }
+
+      //execute all at once
+      for(; i<l; ++i ) {
+        var dd = fns[i]();
+        if(!dd || !dd.done || !dd.fail)
+          throw "Invalid Deferred Object";
+        dd.done(pass).fail(fail);
+      }
+
+      return this.d.promise();
+    },
+
+    mapExecutables: function(objs) {
+      return $.map(objs, function(o) {
+        if($.isFunction(o)) return o;
+        if($.isFunction(o.execute)) return o.execute;
+        throw "Invalid executable";
+      });
     },
 
     execute: function() {
@@ -1294,20 +1294,6 @@ var FormExecution = null,
         this.errors.push({domElem: this.element, msg: this.result});
     },
 
-    Deferred: function() {
-      this.d = this.restrictDeferred();
-    },
-
-    restrictDeferred: function(d) {
-      if(!d) d = $.Deferred();
-      d.__reject = d.reject;
-      d.__resolve = d.resolve;
-      d.reject = d.resolve = function() {
-        console.error("Use execution.resolve|reject()");
-      };
-      return d;
-    },
-
     //resolves or rejects the execution's deferred object 'd'
     resolve: function() {
       return this.resolveOrReject(true);
@@ -1321,6 +1307,15 @@ var FormExecution = null,
       this.success = !!resolve;
       this.nextTick(this.d[fn], [this], 0);
       return this.d.promise();
+    },
+    restrictDeferred: function(d) {
+      if(!d) d = $.Deferred();
+      d.__reject = d.reject;
+      d.__resolve = d.resolve;
+      d.reject = d.resolve = function() {
+        console.error("Use execution.resolve|reject()");
+      };
+      return d;
     },
 
 
@@ -1355,11 +1350,7 @@ var FormExecution = null,
     execute: function() {
       this._super();
       this.log("exec fields #" + this.children.length);
-      return this.parallelize(this.children).always(this.executed);
-    },
-
-    executed: function(exec) {
-      this._super(exec);
+      return this.parallelize(this.children);
     }
 
   });
@@ -1381,7 +1372,8 @@ var FormExecution = null,
 
       //execute rules
       var ruleParams = ruleManager.parseElement(this.element);
-      this.d = null;
+
+      this.skip = true;
 
       //skip check
       if(this.skipValidations()) {
@@ -1392,9 +1384,9 @@ var FormExecution = null,
         this.log("not required");
       } else if(ruleParams.length === 0) {
         this.log("no validators");
-
       //ready!
       } else {
+        this.skip = false;
         this.children = $.map(ruleParams, $.proxy(function(r) {
           if(r.rule.type === 'group')
             return new GroupRuleExecution(r, this);
@@ -1406,14 +1398,8 @@ var FormExecution = null,
         this.serialize(this.children);
       }
 
-      //pass when skipping
-      this.skip = this.d === null;
-      if(this.d === null) {
-        this.Deferred();
-        this.resolve();
-      }
+      if(this.skip) return this.resolve();
 
-      this.d.always(this.executed);
       return this.d.promise();
     },
 
@@ -1430,9 +1416,6 @@ var FormExecution = null,
 
     init: function(ruleParamObj, parent) {
       this._super(null, parent);
-
-      this.Deferred();
-      this.d.always(this.executed);
 
       this.rule = ruleParamObj.rule;
       this.args = ruleParamObj.args;
