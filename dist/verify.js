@@ -1267,7 +1267,7 @@ var FormExecution = null,
     },
 
     execute: function() {
-      this.log('executing...');
+      this.log('executing...', this.parent ? '('+this.parent.name+')' : '');
       this.status = STATUS.RUNNING;
       if(this.domElem)
         this.domElem.triggerHandler("validating");
@@ -1446,7 +1446,7 @@ var FormExecution = null,
     callback: function(result) {
       clearTimeout(this.t);
       this.callbackCount++;
-      this.log("callback #" + this.callbackCount + " with: " + result);
+      this.log(this.rule.name + " (cb#" + this.callbackCount + "): " + result);
       if(this.callbackCount > 1) return;
 
       if(result === undefined)
@@ -1527,83 +1527,80 @@ var FormExecution = null,
 
     init: function(ruleParamObj, parent) {
       this._super(ruleParamObj, parent);
-      this.group = ruleParamObj.name;
+      this.groupName = ruleParamObj.name;
       this.id = ruleParamObj.id;
       this.scope = ruleParamObj.scope || 'default';
+      this.group = this.element.groups[this.groupName][this.scope];
+      if(!this.group)
+        throw "Missing Group Set";
+      if(this.group.size() === 1)
+        this.warn("Group only has 1 field. Consider a field rule.");
     },
 
     execute: function() {
 
-      var groupSet = this.element.groups[this.group][this.scope],
-          groupSize = groupSet.size(),
+      var sharedExec = this.group.exec,
+          parentExec = this.parent,
+          originExec = parentExec && parentExec.parent,
+          groupOrigin = originExec instanceof GroupRuleExecution,
+          fieldOrigin = !originExec,
+          formOrigin = originExec instanceof FormExecution,
           _this = this, i, j, field, exec, child;
 
-      this.members = [];
-
-      //TODO set master refs
-      //wait for master - it will trigger resolve/reject
-      if(this.parent && this.parent.parent instanceof GroupRuleExecution) {
-        this.log("WAIT");
-        return this.d.promise();
+      if(!sharedExec || sharedExec.status === STATUS.COMPLETE) {
+        this.log("MASTER")
+        this.members = [this];
+        this.executeGroup = this._super;
+        sharedExec = this.group.exec = this;
+      } else {
+        this.log("SLAVE (", sharedExec.name, ")")
+        this.linkExec(sharedExec);
+        this.members = sharedExec.members;
+        this.members.push(this);
       }
 
-      if(!groupSet)
-        throw "Missing Group Set";
-      if(groupSize === 1)
-        this.warn("Group only has 1 field. Consider a field rule.");
-
-      //
-      for(i = 0; i < groupSet.size(); ++i) {
-        field = groupSet.get(i);
-
+      if(fieldOrigin)
+      for(i = 0; i < this.group.size(); ++i) {
+        field = this.group.get(i);
+        this.log("CHECK:", field.name);
         //let the user make their way onto 
         // the field first - silent fail!
-        if(!field.touched)
+        if(!field.touched) {
+          this.log("FIELD NOT READY: ", field.name);
           return this.reject();
+        }
 
         exec = field.execution;
+        if(exec === this)
+          continue;
+        if(exec && exec.status === STATUS.COMPLETE)
+          exec.reject();
 
-        //exec not started - start !
-        if(!exec || !exec.children.length) {
-          this.log("STARTING ", field.name);
-          exec = new FieldExecution(field, this);
-          exec.execute();
-        }
-
-        //find member group exec in field exec 
-        for(j = 0; j < exec.children.length; ++j) {
-          child = exec.children[j];
-
-          if(this.isMember(child))
-            this.members.push(child);
-        }
-
+        this.log("STARTING ", field.name);
+        exec = new FieldExecution(field, this);
+        exec.execute();
       }
 
-      this.log("RUN");
-      $.each(this.members, this.linkExec);
 
-      return this._super();
+      if(this.group.size() === sharedExec.members.length) {
+        sharedExec.log("RUN");
+        sharedExec.executeGroup();
+      } else {
+        this.log("WAIT");
+      }
+
+      return this.d.promise();
     },
 
-    //ensures that another execution is a member the group
-    isMember: function(that) {
-      return that instanceof GroupRuleExecution &&
-             this.group === that.group &&
-             this.scope === that.scope;
-    },
-
-    linkExec: function(i, rule) {
-      if(this === rule) return;
-      rule.masterExec = this;
+    linkExec: function(master) {
       //use the status of this group
       //as the status of each linked
-      this.d.done(rule.resolve);
-      this.d.fail(rule.reject);
+      master.d.done(this.resolve);
+      master.d.fail(this.reject);
       //silent fail if one of the linked fields' rules
       //fails prior to reaching the group validation
-      if(rule.parent)
-        rule.parent.d.fail(this.reject);
+      if(master.parent)
+        master.parent.d.fail(this.reject);
     },
 
     //override and add an extra
