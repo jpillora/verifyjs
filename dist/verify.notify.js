@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/04/23
+/** Verify.js - v0.0.1 - 2013/04/24
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -1608,13 +1608,13 @@ var FormExecution = null,
 
       function pass(result) {
         n++;
-        if(n === l) this.resolve(result);
+        if(n === l) _this.resolve(result);
       }
 
       function fail(result) {
         if(rejected) return;
         rejected = true;
-        this.reject(result);
+        _this.reject(result);
       }
 
       //execute all at once
@@ -1637,7 +1637,16 @@ var FormExecution = null,
     },
 
     execute: function() {
-      this.log('executing...', this.parent ? '('+this.parent.name+')' : '');
+
+      var p = this.parent,
+          ps = [];
+      while(p) {
+        ps.push(p.name);
+        p = p.parent;
+      }
+      var gap = "(" + ps.join(' < ') + ")";
+
+      this.log(this.parent ? gap : '', 'executing...');
       this.status = STATUS.RUNNING;
       if(this.domElem)
         this.domElem.triggerHandler("validating");
@@ -1675,6 +1684,7 @@ var FormExecution = null,
       var fn = resolve ? '__resolve' : '__reject';
       if(!this.d || !this.d[fn]) throw "Invalid Deferred Object";
       this.success = !!resolve;
+      this.log('success: ', this.success, 'result: ' + this.result);
       this.nextTick(this.d[fn], [this], 0);
       return this.d.promise();
     },
@@ -1775,7 +1785,8 @@ var FormExecution = null,
 
     executed: function(exec) {
       this._super(exec);
-      this.element.handleResult(exec);
+      if(exec.result !== undefined)
+        this.element.handleResult(exec);
     }
 
   });
@@ -1805,15 +1816,16 @@ var FormExecution = null,
       if(result === undefined)
         this.warn("Undefined result");
 
+      this.result = result;
+
       var passed = result === true;
 
       //success
-      if(passed) {
+      if(passed)
         this.resolve();
-      } else {
-        this.result = result;
+      else
         this.reject();
-      }
+
     },
 
     timeout: function() {
@@ -1915,6 +1927,10 @@ var FormExecution = null,
       if(fieldOrigin)
       for(i = 0; i < this.group.size(); ++i) {
         field = this.group.get(i);
+
+        if(this.element === field)
+          continue;
+
         this.log("CHECK:", field.name);
         //let the user make their way onto 
         // the field first - silent fail!
@@ -1924,8 +1940,6 @@ var FormExecution = null,
         }
 
         exec = field.execution;
-        if(exec === this)
-          continue;
         if(exec && exec.status === STATUS.COMPLETE)
           exec.reject();
 
@@ -1959,7 +1973,7 @@ var FormExecution = null,
     //override and add an extra
     transformResult: function() {
 
-      if(!this.members)
+      if(this.result && !this.members)
         return this._super();
 
       var list = [], exec, i, domElem, result,
