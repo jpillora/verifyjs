@@ -169,7 +169,8 @@ var ruleManager = null;
 
     //convert string in format: "name.scope#id(args...)" to object
     $.each(chars.join('').split(','), function(i, rule) {
-      m = rule.match(/^(\w+)(\.(\w+))?(\#(\w+))?(\((\w+(\;\w+)*)\))?$/);
+      //regex doc:      NAME  . SCOPE   # ID      ( PARAM;PARAM* )
+      m = rule.match(/^(\w+)(\.(\w+))?(\#(\w+))?(\(([^;\)]+(\;[^;\)]+)*)\))?$/);
       if(!m) return warn("Invalid validate attribute: " + str);
       rule = {};
       rule.name = m[1];

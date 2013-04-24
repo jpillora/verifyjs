@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/04/24
+/** Verify.js - v0.0.1 - 2013/04/25
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -1053,7 +1053,8 @@ var ruleManager = null;
 
     //convert string in format: "name.scope#id(args...)" to object
     $.each(chars.join('').split(','), function(i, rule) {
-      m = rule.match(/^(\w+)(\.(\w+))?(\#(\w+))?(\((\w+(\;\w+)*)\))?$/);
+      //regex doc:      NAME  . SCOPE   # ID      ( PARAM;PARAM* )
+      m = rule.match(/^(\w+)(\.(\w+))?(\#(\w+))?(\(([^;\)]+(\;[^;\)]+)*)\))?$/);
       if(!m) return warn("Invalid validate attribute: " + str);
       rule = {};
       rule.name = m[1];
@@ -1659,7 +1660,7 @@ var FormExecution = null,
         this.skip = exec.skip;
         this.success = exec.success;
         this.result = exec.result;
-        this.log(exec.success ? 'Passed' : 'Failed');//, this.result);
+        this.log(exec.success ? 'Passed' : 'Failed', this.result);
       } else {
         this.log('Did not execute');
         this.success = true;
@@ -1684,7 +1685,6 @@ var FormExecution = null,
       var fn = resolve ? '__resolve' : '__reject';
       if(!this.d || !this.d[fn]) throw "Invalid Deferred Object";
       this.success = !!resolve;
-      this.log('success: ', this.success, 'result: ' + this.result);
       this.nextTick(this.d[fn], [this], 0);
       return this.d.promise();
     },
@@ -1785,8 +1785,8 @@ var FormExecution = null,
 
     executed: function(exec) {
       this._super(exec);
-      if(exec.result !== undefined)
-        this.element.handleResult(exec);
+      // if(exec.result !== undefined)
+      this.element.handleResult(exec);
     }
 
   });
@@ -2083,12 +2083,16 @@ log("plugin added.");
      * - at plugin load, 'regex' will be transformed into validator function 'fn' which uses 'message'
      */
     currency: {
-      regex: /^\$?\-?\d+(,\d+)*(\.\d+)?$/,
+      regex: /^\-?\$?\d{1,2}(,?\d{3})*(\.\d+)?$/,
       message: "Invalid monetary value"
     },
     email: {
       regex: /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()\[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
       message: "Invalid email address"
+    },
+    url: {
+      regex: /^https?:\/\/[\-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[\-A-Za-z0-9+&@#\/%=~_|]/,
+      message: "Invalid URL"
     },
     alphanumeric: {
       regex: /^[0-9A-Za-z]+$/,

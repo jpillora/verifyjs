@@ -138,7 +138,7 @@ var FormExecution = null,
         this.skip = exec.skip;
         this.success = exec.success;
         this.result = exec.result;
-        this.log(exec.success ? 'Passed' : 'Failed');//, this.result);
+        this.log(exec.success ? 'Passed' : 'Failed', this.result);
       } else {
         this.log('Did not execute');
         this.success = true;
@@ -163,7 +163,6 @@ var FormExecution = null,
       var fn = resolve ? '__resolve' : '__reject';
       if(!this.d || !this.d[fn]) throw "Invalid Deferred Object";
       this.success = !!resolve;
-      this.log('success: ', this.success, 'result: ' + this.result);
       this.nextTick(this.d[fn], [this], 0);
       return this.d.promise();
     },
@@ -264,8 +263,8 @@ var FormExecution = null,
 
     executed: function(exec) {
       this._super(exec);
-      if(exec.result !== undefined)
-        this.element.handleResult(exec);
+      // if(exec.result !== undefined)
+      this.element.handleResult(exec);
     }
 
   });

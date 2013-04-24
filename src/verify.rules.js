@@ -10,12 +10,16 @@
      * - at plugin load, 'regex' will be transformed into validator function 'fn' which uses 'message'
      */
     currency: {
-      regex: /^\$?\-?\d+(,\d+)*(\.\d+)?$/,
+      regex: /^\-?\$?\d{1,2}(,?\d{3})*(\.\d+)?$/,
       message: "Invalid monetary value"
     },
     email: {
       regex: /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()\[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
       message: "Invalid email address"
+    },
+    url: {
+      regex: /^https?:\/\/[\-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[\-A-Za-z0-9+&@#\/%=~_|]/,
+      message: "Invalid URL"
     },
     alphanumeric: {
       regex: /^[0-9A-Za-z]+$/,
