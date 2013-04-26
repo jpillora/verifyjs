@@ -16,8 +16,6 @@ var globalOptions = {
   validateAttribute: "data-validate",
   // Name of the event triggering field validation
   validationEventTrigger: "blur",
-  // Whether to do an initial silent validation on the form
-  prevalidate: false,
   // Automatically scroll viewport to the first error
   scroll: true,
   // Focus on the first input
@@ -28,8 +26,6 @@ var globalOptions = {
   skipHiddenFields: true,
   // Whether to skip the hidden fields
   skipDisabledFields: true,
-  // Whether to skip empty fields that aren't required
-  skipNotRequired: true,
   // What class name to apply to the 'errorContainer'
   errorClass: "error",
   // Filter method to find element to apply error class (default: the input)

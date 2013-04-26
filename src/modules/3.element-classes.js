@@ -74,11 +74,11 @@ var ValidationForm = null;
 
     //for use with $(field).validate(callback);
     validate: function(callback) {
-      (new FieldExecution(this)).execute().always(function(exec) {
-        if(!exec) exec = { success: true };
-        if(callback) callback(exec.success, exec.result);
+      var exec = new FieldExecution(this);
+      exec.execute().always(function(result) {
+        if(callback) callback(result && result.success, result);
       });
-      return undefined;
+      return;
     },
 
     update: function() {
@@ -108,43 +108,42 @@ var ValidationForm = null;
 
     },
 
-    handleResult: function(exec) {
+    handleResult: function(result) {
 
       // console.warn(this.name + " display: ", exec.type, exec.name);
 
-      if(exec.errorDisplayed) return;
-      exec.errorDisplayed = true;
+      if(!result || result.errorDisplayed) return;
+      result.errorDisplayed = true;
 
-      if(!$.isArray(exec.result)) return;
+      if(!$.isArray(result.prompts)) return;
 
       var opts = this.options, texts = [], text,
-          container = null, i, domElem, result;
+          container = null, i, domElem;
 
-      for(i = 0; i < exec.result.length; ++i) {
+      for(i = 0; i < result.prompts.length; ++i) {
 
-        domElem = exec.result[i].domElem;
-        text = exec.result[i].result;
+        args = result.prompts[i];
 
         if(opts.showPrompt)
-          opts.prompt(domElem, text);
+          opts.prompt.apply(opts.prompt, args);
 
-        if(text) texts.push(text);
+        if(args[1]) texts.push(args[1]);
 
-        container = opts.errorContainer(domElem);
+        container = opts.errorContainer(args[0]);
         if(container && container.length)
-          container.toggleClass(opts.errorClass, !exec.success);
+          container.toggleClass(opts.errorClass, !result.success);
       }
 
-      this.trackResult(this.domElem, texts.join(','), exec);
+      this.trackResult(texts.join(','), result);
     },
 
-    trackResult: function(domElem, text, exec) {
-      if(exec.parent && exec.parent.formExecution) return;
+    trackResult: function(text, result) {
+      if(!result) return;
 
       this.options.track(
         'Validate',
         [this.form.name,this.name].join(' '),
-        exec.skip ? 'Skip' : exec.success ? 'Valid' : text
+        result.success ? 'Valid' : text ? text : 'Skip'
       );
     }
 
@@ -194,25 +193,14 @@ var ValidationForm = null;
       this.bindEvents();
       this.updateFields();
       this.log("bound to " + this.fields.size() + " elems");
-
-      var opts = this.options,
-          oldShowPrompt = opts.showPrompt;
-      if(opts.prevalidate) {
-        opts.showPrompt = false;
-        this.validate(function() {
-          opts.showPrompt = oldShowPrompt;
-        });
-      }
     },
 
     bindEvents: function() {
       this.domElem
         .on("keyup.jqv", "input", this.onKeyup)
         .on("blur.jqv", "input[type=text]:not(.hasDatepicker),input:not([type].hasDatepicker)", this.onValidate)
-        .on("change.jqv", "input[type=text].hasDatepicker", this.onValidate)
-        .on("change.jqv", "select,[type=checkbox],[type=radio]", this.onValidate)
+        .on("change.jqv", "input[type=text].hasDatepicker,select,[type=checkbox],[type=radio]", this.onValidate)
         .on("submit.jqv", this.onSubmit)
-        .on("validated.jqv", this.scrollFocus)
         .trigger("initialised.jqv");
     },
 
@@ -279,16 +267,16 @@ var ValidationForm = null;
       return submitForm;
     },
 
-    doSubmit: function(result, errorsArray) {
+    doSubmit: function(success) {
       this.submitPending = false;
-      this.submitResult = result;
+      this.submitResult = success;
       this.domElem.submit(); //trigger onSubmit, though with a result
       this.submitResult = undefined;
     },
 
     onKeyup: function(event) {
       if(this.options.hideErrorOnChange)
-        this.options.prompt($(event.currentTarget),false);
+        this.options.prompt($(event.currentTarget), null);
     },
 
     //user triggered validate field event
@@ -306,11 +294,11 @@ var ValidationForm = null;
     validate: function(callback) {
       this.updateFields();
 
-      (new FormExecution(this)).execute().always(function(exec) {
-        if(!exec) exec = { success: true };
-        if(callback) callback(exec.success, exec.result);
+      var exec = new FormExecution(this);
+      exec.execute().always(function(result) {
+        if(callback) callback(result && result.success, result);
       });
-      return undefined;
+      return;
     },
 
     //listening for 'validate' event

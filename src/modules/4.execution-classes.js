@@ -2,7 +2,26 @@
  * Execution Classes
  * ===================================== */
 
-//only exposing two classes
+
+// Result class
+var ExecutionResult = BaseClass.extend({
+  type: "ExecutionResult",
+
+  init: function(parent, success) {
+    this.parent = parent;
+    this.success = success;
+    this.prompts = [];
+  },
+
+  add: function(field, message, opts) {
+    this.prompts.push([
+      field, message || null, opts || {color: 'red'}
+    ]);
+  }
+});
+
+// Execution classes
+// only exposing two classes
 var FormExecution = null,
     FieldExecution = null;
 
@@ -33,8 +52,6 @@ var FormExecution = null,
       this.parent = parent;
       this.name = guid();
       this.status = STATUS.NOT_STARTED;
-      this.errorField = null;
-      this.errors = [];
       this.bindAll();
 
       //deferred object
@@ -131,25 +148,20 @@ var FormExecution = null,
         this.domElem.triggerHandler("validating");
     },
 
-    executed: function(exec) {
+    executed: function(result) {
       this.status = STATUS.COMPLETE;
 
-      if(exec) {
-        this.skip = exec.skip;
-        this.success = exec.success;
-        this.result = exec.result;
-        this.log(exec.success ? 'Passed' : 'Failed', this.result);
+      if(result instanceof ExecutionResult) {
+        this.result = result;
+        this.log(result.success ? 'Passed' : 'Failed');
+      } else if(!result) {
+        this.log("No result");
       } else {
-        this.log('Did not execute');
-        this.success = true;
+        this.warn("Invalid resolve type: ", $.type(result));
       }
 
       if(this.domElem)
         this.domElem.triggerHandler("validated", arguments);
-
-      //fill the errors array per execution
-      if(this.success)
-        this.errors.push({domElem: this.element, msg: this.result});
     },
 
     //resolves or rejects the execution's deferred object 'd'
@@ -159,11 +171,10 @@ var FormExecution = null,
     reject: function() {
       return this.resolveOrReject(false);
     },
-    resolveOrReject: function(resolve) {
+    resolveOrReject: function(resolve, args) {
       var fn = resolve ? '__resolve' : '__reject';
       if(!this.d || !this.d[fn]) throw "Invalid Deferred Object";
-      this.success = !!resolve;
-      this.nextTick(this.d[fn], [this], 0);
+      this.nextTick(this.d[fn], [this.result], 0);
       return this.d.promise();
     },
     restrictDeferred: function(d) {
@@ -236,8 +247,7 @@ var FormExecution = null,
       //skip check
       if(this.skipValidations()) {
         this.log("skip");
-      } else if(this.options.skipNotRequired &&
-                !ruleParams.required &&
+      } else if(!ruleParams.required &&
                 !$.trim(this.domElem.val())) {
         this.log("not required");
       } else if(ruleParams.length === 0) {
@@ -261,10 +271,9 @@ var FormExecution = null,
       return this.d.promise();
     },
 
-    executed: function(exec) {
-      this._super(exec);
-      // if(exec.result !== undefined)
-      this.element.handleResult(exec);
+    executed: function(result) {
+      this._super(result);
+      this.element.handleResult(result);
     }
 
   });
@@ -285,21 +294,24 @@ var FormExecution = null,
 
     //the function that gets called when
     //rules return or callback
-    callback: function(result) {
+    callback: function(response) {
       clearTimeout(this.t);
       this.callbackCount++;
-      this.log(this.rule.name + " (cb#" + this.callbackCount + "): " + result);
-      if(this.callbackCount > 1) return;
+      this.log(this.rule.name + " (cb#" + this.callbackCount + "): " + response);
 
-      if(result === undefined)
+      if(this.callbackCount > 1)
+        return;
+
+      if(response === undefined)
         this.warn("Undefined result");
 
-      this.result = result;
+      var success = response === true;
 
-      var passed = result === true;
+      this.result = new ExecutionResult(this, success);
+      this.extractPrompts(response);
 
       //success
-      if(passed)
+      if(success)
         this.resolve();
       else
         this.reject();
@@ -325,41 +337,30 @@ var FormExecution = null,
       this.r = this.rule.buildInterface(this);
       //finally execute validator
 
-      var result;
+      var response;
       try {
-        result = this.rule.fn(this.r);
+        response = this.rule.fn(this.r);
       } catch(e) {
         this.skip = true;
-        result = true;
+        response = true;
         console.error("Error caught in validation rule: '" + this.rule.name +
                       "', skipping.\nERROR: " + e.toString() + "\nSTACK:" + e.stack);
       }
 
       //used return statement
-      if(result !== undefined)
-        this.nextTick(this.callback, [result]);
+      if(response !== undefined)
+        this.nextTick(this.callback, [response]);
 
       return this.d.promise();
     },
 
-    executed: function(exec) {
-      this.transformResult();
-      this._super(this);
-    },
-
     //transforms the result from the rule
     //into an array of elems and errors
-    transformResult: function() {
-      if(typeof this.result === 'string')
-        this.result = [{
-          domElem: this.element.reskinElem,
-          result: this.result
-        }];
-      else if(!$.isArray(this.result))
-        this.result = [{
-          domElem: this.element.reskinElem,
-          result: null
-        }];
+    extractPrompts: function(response) {
+      if(typeof response === 'string')
+        this.result.add(this.element.reskinElem, response);
+      else if(!$.isArray(response))
+        this.result.add(this.element.reskinElem, null);
     }
 
   });
@@ -391,12 +392,12 @@ var FormExecution = null,
           _this = this, i, j, field, exec, child;
 
       if(!sharedExec || sharedExec.status === STATUS.COMPLETE) {
-        this.log("MASTER")
+        this.log("MASTER");
         this.members = [this];
         this.executeGroup = this._super;
         sharedExec = this.group.exec = this;
       } else {
-        this.log("SLAVE (", sharedExec.name, ")")
+        this.log("SLAVE (", sharedExec.name, ")");
         this.linkExec(sharedExec);
         this.members = sharedExec.members;
         this.members.push(this);
@@ -418,7 +419,8 @@ var FormExecution = null,
         }
 
         exec = field.execution;
-        if(exec && exec.status === STATUS.COMPLETE)
+        //silent fail unfinished
+        if(exec && exec.status !== STATUS.COMPLETE)
           exec.reject();
 
         this.log("STARTING ", field.name);
@@ -440,39 +442,34 @@ var FormExecution = null,
     linkExec: function(master) {
       //use the status of this group
       //as the status of each linked
-      master.d.done(this.resolve);
-      master.d.fail(this.reject);
+      master.d.done(this.resolve).fail(this.reject);
+      // todo
       //silent fail if one of the linked fields' rules
       //fails prior to reaching the group validation
-      if(master.parent)
-        master.parent.d.fail(this.reject);
+      // if(master.parent)
+      //   master.parent.d.fail(this.reject);
     },
 
-    //override and add an extra
-    transformResult: function() {
+    extractPrompts: function(response) {
 
-      if(this.result && !this.members)
-        return this._super();
+      if(!response || !this.members.length)
+        return this._super(response);
 
-      var list = [], exec, i, domElem, result,
-          isObj = $.isPlainObject(this.result),
-          isStr = (typeof this.result === 'string');
+      var exec, i, domElem, result,
+          isObj = $.isPlainObject(response),
+          isStr = (typeof response === 'string');
 
       for(i = 0; i < this.members.length; ++i) {
         exec = this.members[i];
 
         if(isStr)
-          result = (this === exec) ? this.result : null;
+          result = (this === exec) ? response : null;
         else if(isObj)
-          result = this.result[exec.id];
+          result = response[exec.id];
 
-        list.push({
-          domElem: exec.element.reskinElem,
-          result: result
-        });
+        this.result.add(exec.element.reskinElem, result);
       }
 
-      this.result = list;
     }
 
   });
