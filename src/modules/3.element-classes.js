@@ -108,21 +108,22 @@ var ValidationForm = null;
 
     },
 
-    handleResult: function(result) {
+    handleResult: function(success, prompts) {
 
       // console.warn(this.name + " display: ", exec.type, exec.name);
 
-      if(!result || result.errorDisplayed) return;
-      result.errorDisplayed = true;
+      if(!prompts) return;
+      if(prompts && !$.isArray(prompts))
+        throw "Prompts must be an array (not: "+$.type(prompts)+")";
 
-      if(!$.isArray(result.prompts)) return;
+      if(!$.isArray(prompts)) return;
 
       var opts = this.options, texts = [], text,
           container = null, i, domElem;
 
-      for(i = 0; i < result.prompts.length; ++i) {
+      for(i = 0; i < prompts.length; ++i) {
 
-        args = result.prompts[i];
+        args = prompts[i];
 
         if(opts.showPrompt)
           opts.prompt.apply(opts.prompt, args);
@@ -131,19 +132,17 @@ var ValidationForm = null;
 
         container = opts.errorContainer(args[0]);
         if(container && container.length)
-          container.toggleClass(opts.errorClass, !result.success);
+          container.toggleClass(opts.errorClass, !success);
       }
 
-      this.trackResult(texts.join(','), result);
+      this.trackResult(texts.join(','), success);
     },
 
-    trackResult: function(text, result) {
-      if(!result) return;
-
+    trackResult: function(text, success) {
       this.options.track(
         'Validate',
         [this.form.name,this.name].join(' '),
-        result.success ? 'Valid' : text ? text : 'Skip'
+        success ? 'Valid' : text ? text : 'Skip'
       );
     }
 

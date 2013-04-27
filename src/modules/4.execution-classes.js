@@ -135,9 +135,7 @@ var FormExecution = null,
       this.success = success;
       this.log(success ? 'Passed' : 'Failed');
 
-      if(prompts) {
-        this.log("Has prompts");
-      }
+      if(prompts) this.log("Has prompts");
 
       if(this.domElem)
         this.domElem.triggerHandler("validated", arguments);
@@ -152,7 +150,6 @@ var FormExecution = null,
     },
     resolveOrReject: function(success, prompts) {
       var fn = success ? '__resolve' : '__reject';
-      if(prompts && !$.isArray(prompts)) throw "Prompts must be an array";
       if(!this.d || !this.d[fn]) throw "Invalid Deferred Object";
       this.nextTick(this.d[fn], [success, prompts], 0);
       return this.d.promise();
@@ -410,7 +407,8 @@ var FormExecution = null,
       }
 
 
-      if(this.group.size() === sharedExec.members.length) {
+      if(this.group.size() === sharedExec.members.length &&
+         sharedExec.status === STATUS.NOT_STARTED) {
         sharedExec.log("RUN");
         sharedExec.executeGroup();
       } else {
