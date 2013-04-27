@@ -1508,24 +1508,6 @@ var ValidationForm = null;
   });
 
 })();
-// Result class
-var ExecutionResult = BaseClass.extend({
-  type: "ExecutionResult",
-
-  init: function(parent, success) {
-    this.parent = parent;
-    this.success = success;
-    this.prompts = [];
-  },
-
-  add: function(field, message, opts) {
-    this.prompts.push([
-      field, message || null, opts || {color: 'red'}
-    ]);
-  }
-});
-
-// Execution classes
 // only exposing two classes
 var FormExecution = null,
     FieldExecution = null;
@@ -1607,15 +1589,15 @@ var FormExecution = null,
       if(!$.isArray(fns) || l === 0)
         return this.resolve();
 
-      function pass(result) {
+      function pass(success, prompts) {
         n++;
-        if(n === l) _this.resolve(result);
+        if(n === l) _this.resolve(success, prompts);
       }
 
-      function fail(result) {
+      function fail(success, prompts) {
         if(rejected) return;
         rejected = true;
-        _this.reject(result);
+        _this.reject(success, prompts);
       }
 
       //execute all at once
@@ -1653,16 +1635,14 @@ var FormExecution = null,
         this.domElem.triggerHandler("validating");
     },
 
-    executed: function(result) {
+    executed: function(success, prompts) {
       this.status = STATUS.COMPLETE;
 
-      if(result instanceof ExecutionResult) {
-        this.result = result;
-        this.log(result.success ? 'Passed' : 'Failed');
-      } else if(!result) {
-        this.log("No result");
-      } else {
-        this.warn("Invalid resolve type: ", $.type(result));
+      this.success = success;
+      this.log(success ? 'Passed' : 'Failed');
+
+      if(prompts) {
+        this.log("Has prompts");
       }
 
       if(this.domElem)
@@ -1670,16 +1650,17 @@ var FormExecution = null,
     },
 
     //resolves or rejects the execution's deferred object 'd'
-    resolve: function() {
-      return this.resolveOrReject(true);
+    resolve: function(prompts) {
+      return this.resolveOrReject(true, prompts);
     },
-    reject: function() {
-      return this.resolveOrReject(false);
+    reject: function(prompts) {
+      return this.resolveOrReject(false, prompts);
     },
-    resolveOrReject: function(resolve, args) {
-      var fn = resolve ? '__resolve' : '__reject';
+    resolveOrReject: function(success, prompts) {
+      var fn = success ? '__resolve' : '__reject';
+      if(prompts && !$.isArray(prompts)) throw "Prompts must be an array";
       if(!this.d || !this.d[fn]) throw "Invalid Deferred Object";
-      this.nextTick(this.d[fn], [this.result], 0);
+      this.nextTick(this.d[fn], [success, prompts], 0);
       return this.d.promise();
     },
     restrictDeferred: function(d) {
@@ -1690,19 +1671,6 @@ var FormExecution = null,
         console.error("Use execution.resolve|reject()");
       };
       return d;
-    },
-
-
-    skipValidations: function() {
-      //custom-form-elements.js hidden fields
-      if(this.element.form.options.skipHiddenFields &&
-         this.element.reskinElem.is(':hidden'))
-        return true;
-      //skip disabled
-      if(this.domElem.is('[disabled]'))
-        return true;
-
-      return false;
     }
 
   });
@@ -1747,38 +1715,55 @@ var FormExecution = null,
       //execute rules
       var ruleParams = ruleManager.parseElement(this.element);
 
-      this.skip = true;
-
       //skip check
-      if(this.skipValidations()) {
-        this.log("skip");
-      } else if(!ruleParams.required &&
-                !$.trim(this.domElem.val())) {
-        this.log("not required");
-      } else if(ruleParams.length === 0) {
-        this.log("no validators");
-      //ready!
-      } else {
-        this.skip = false;
-        this.children = $.map(ruleParams, $.proxy(function(r) {
-          if(r.rule.type === 'group')
-            return new GroupRuleExecution(r, this);
-          else
-            return new RuleExecution(r, this);
-        }, this));
+      if(this.skipValidations(ruleParams))
+        return this.resolve();
 
-        // this.log("exec rules #%s", this.children.length);
-        this.serialize(this.children);
-      }
+      //ready
+      this.children = $.map(ruleParams, $.proxy(function(r) {
+        if(r.rule.type === 'group')
+          return new GroupRuleExecution(r, this);
+        else
+          return new RuleExecution(r, this);
+      }, this));
 
-      if(this.skip) return this.resolve();
-
-      return this.d.promise();
+      // this.log("exec rules #%s", this.children.length);
+      return this.serialize(this.children);
     },
 
-    executed: function(result) {
-      this._super(result);
-      this.element.handleResult(result);
+    skipValidations: function(ruleParams) {
+
+      //no rules
+      if(ruleParams.length === 0) {
+        this.log("skip (no validators)");
+        return true;
+      }
+
+      //not required
+      if(!ruleParams.required && !$.trim(this.domElem.val())) {
+        this.log("skip (not required)");
+        return true;
+      }
+
+      //custom-form-elements.js hidden fields
+      if(this.element.form.options.skipHiddenFields &&
+         this.element.reskinElem.is(':hidden')) {
+        this.log("skip (hidden)");
+        return true;
+      }
+
+      //skip disabled
+      if(this.domElem.is('[disabled]')) {
+        this.log("skip (disabled)");
+        return true;
+      }
+
+      return false;
+    },
+
+    executed: function(success, prompts) {
+      this._super(success);
+      this.element.handleResult(success, prompts);
     }
 
   });
@@ -1811,15 +1796,13 @@ var FormExecution = null,
         this.warn("Undefined result");
 
       var success = response === true;
-
-      this.result = new ExecutionResult(this, success);
-      this.extractPrompts(response);
+      var prompts = this.extractPrompts(response);
 
       //success
       if(success)
-        this.resolve();
+        this.resolve(prompts);
       else
-        this.reject();
+        this.reject(prompts);
 
     },
 
@@ -1846,7 +1829,6 @@ var FormExecution = null,
       try {
         response = this.rule.fn(this.r);
       } catch(e) {
-        this.skip = true;
         response = true;
         console.error("Error caught in validation rule: '" + this.rule.name +
                       "', skipping.\nERROR: " + e.toString() + "\nSTACK:" + e.stack);
@@ -1863,9 +1845,9 @@ var FormExecution = null,
     //into an array of elems and errors
     extractPrompts: function(response) {
       if(typeof response === 'string')
-        this.result.add(this.element.reskinElem, response);
+        return [[this.element.reskinElem, response]];
       else if(!$.isArray(response))
-        this.result.add(this.element.reskinElem, null);
+        return [[this.element.reskinElem, null]];
     }
 
   });
@@ -1960,7 +1942,7 @@ var FormExecution = null,
       if(!response || !this.members.length)
         return this._super(response);
 
-      var exec, i, domElem, result,
+      var exec, i, domElem, result, prompts = [],
           isObj = $.isPlainObject(response),
           isStr = (typeof response === 'string');
 
@@ -1972,9 +1954,9 @@ var FormExecution = null,
         else if(isObj)
           result = response[exec.id];
 
-        this.result.add(exec.element.reskinElem, result);
+        prompts.push([exec.element.reskinElem, result]);
       }
-
+      return prompts;
     }
 
   });
