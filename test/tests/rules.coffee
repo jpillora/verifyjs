@@ -93,11 +93,11 @@ describe "Validation rules", ->
         expect(result).to.be.false
         done()
 
-    it "should be valid (NOT required)", (done) ->
-      form.verify skipNotRequired: true
-      $('#multiOptional').validate (result) ->
-        expect(result).to.be.true
-        done()
+    # it "should be valid (NOT required)", (done) ->
+    #   form.verify skipNotRequired: true
+    #   $('#multiOptional').validate (result) ->
+    #     expect(result).to.be.true
+    #     done()
 
   describe "min-max chars", ->
 

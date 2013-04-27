@@ -10,14 +10,18 @@ var Set = Class.extend({
     this.addAll(items);
   },
 
-  //obj can be a filter function or an object to 'equals' against
-  find: function(obj) {
+  indexOf: function(obj) {
     for(var i = 0, l = this.array.length;i<l; ++i)
       if($.isFunction(obj) ?
           obj(this.get(i)) :
           this.equals(this.get(i),obj))
-        return this.get(i);
-    return null;
+        return i;
+    return -1;
+  },
+
+  //obj can be a filter function or an object to 'equals' against
+  find: function(obj) {
+    return this.get(this.indexOf(obj)) || null;
   },
 
   get: function(i) {

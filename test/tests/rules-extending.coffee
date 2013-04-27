@@ -19,6 +19,7 @@ describe "Extending validation rules", ->
   $.verify.addFieldRules
     validator1:
       fn: (r) ->
+        console.warn "running validator1 with: #{r.val()}"
         return "Must equal '" + r.myVar + "' (not " + r.val() + ")"  if r.val() isnt r.myVar
         true
       myVar: "abc"
@@ -33,6 +34,7 @@ describe "Extending validation rules", ->
       #validator1.fn overridden !
       #validator2.myVar inherited !
       fn: (r) ->
+        console.warn "running validator3 with: #{r.val()}"
         myVar2x = r.myVar + r.myVar
         return "Must equal '" + myVar2x + "' (double)"  if r.val() isnt myVar2x
         true
@@ -62,7 +64,7 @@ describe "Extending validation rules", ->
       describe "Enable validator 3", ->
 
         beforeEach ->
-          form.find("input[name=field3]").attr "data-validate", "validator3"
+          form.find("input[name=field3]").val("def").attr "data-validate", "validator3"
 
         it "double extended validator should be invalid", (done) ->
           form.validate (result) ->

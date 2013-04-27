@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/04/27
+/** Verify.js - v0.0.1 - 2013/04/28
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -249,14 +249,18 @@ var Set = Class.extend({
     this.addAll(items);
   },
 
-  //obj can be a filter function or an object to 'equals' against
-  find: function(obj) {
+  indexOf: function(obj) {
     for(var i = 0, l = this.array.length;i<l; ++i)
       if($.isFunction(obj) ?
           obj(this.get(i)) :
           this.equals(this.get(i),obj))
-        return this.get(i);
-    return null;
+        return i;
+    return -1;
+  },
+
+  //obj can be a filter function or an object to 'equals' against
+  find: function(obj) {
+    return this.get(this.indexOf(obj)) || null;
   },
 
   get: function(i) {
@@ -888,9 +892,14 @@ var ValidationForm = null;
 
     //for use with $(field).validate(callback);
     validate: function(callback) {
+      if(!callback) callback = $.noop; 
+
       var exec = new FieldExecution(this);
-      exec.execute().always(function(result) {
-        if(callback) callback(result && result.success, result);
+      
+      exec.execute().done(function() {
+        callback(true);
+      }).fail(function() {
+        callback(false);
       });
       return;
     },
@@ -922,44 +931,29 @@ var ValidationForm = null;
 
     },
 
-    handleResult: function(success, prompts) {
+    handleResult: function(exec) {
+
 
       // console.warn(this.name + " display: ", exec.type, exec.name);
 
-      if(!prompts) return;
-      if(prompts && !$.isArray(prompts))
-        throw "Prompts must be an array (not: "+$.type(prompts)+")";
+      var opts = this.options;
 
-      if(!$.isArray(prompts)) return;
+      //show prompt
+      if(opts.showPrompt)
+        opts.prompt(this.reskinElem, exec.prompt);
 
-      var opts = this.options, texts = [], text,
-          container = null, i, domElem;
-
-      for(i = 0; i < prompts.length; ++i) {
-
-        args = prompts[i];
-
-        if(opts.showPrompt)
-          opts.prompt.apply(opts.prompt, args);
-
-        if(args[1]) texts.push(args[1]);
-
-        container = opts.errorContainer(args[0]);
-        if(container && container.length)
-          container.toggleClass(opts.errorClass, !success);
-      }
-
-      this.trackResult(texts.join(','), success);
-    },
-
-    trackResult: function(text, success) {
+      //toggle error classes
+      var container = opts.errorContainer(this.reskinElem);
+      if(container && container.length)
+        container.toggleClass(opts.errorClass, !exec.success);
+      
+      //track event
       this.options.track(
         'Validate',
         [this.form.name,this.name].join(' '),
-        success ? 'Valid' : text ? text : 'Skip'
+        exec.success ? 'Valid' : exec.prompt ? '"'+exec.prompt+'"' : 'Silent Fail'
       );
     }
-
 
   });
 
@@ -1081,6 +1075,7 @@ var ValidationForm = null;
     },
 
     doSubmit: function(success) {
+      this.log('doSubmit', success);
       this.submitPending = false;
       this.submitResult = success;
       this.domElem.submit(); //trigger onSubmit, though with a result
@@ -1105,11 +1100,14 @@ var ValidationForm = null;
      * ===================================== */
 
     validate: function(callback) {
-      this.updateFields();
+      if(!callback) callback = $.noop; 
 
       var exec = new FormExecution(this);
-      exec.execute().always(function(result) {
-        if(callback) callback(result && result.success, result);
+      
+      exec.execute().done(function() {
+        callback(true);
+      }).fail(function() {
+        callback(false);
       });
       return;
     },
@@ -1150,6 +1148,8 @@ var FormExecution = null,
     COMPLETE: 2
   };
 
+  window.liveExecs = new Set();
+
   //super class
   //set in private scope
   var Execution = BaseClass.extend({
@@ -1172,7 +1172,9 @@ var FormExecution = null,
 
       //deferred object
       this.d = this.restrictDeferred();
-      this.d.always(this.executed);
+      this.d.done(this.executePassed);
+      this.d.fail(this.executeFailed);
+
     },
 
     toString: function() {
@@ -1218,15 +1220,15 @@ var FormExecution = null,
       if(!$.isArray(fns) || l === 0)
         return this.resolve();
 
-      function pass(success, prompts) {
+      function pass(prompt) {
         n++;
-        if(n === l) _this.resolve(success, prompts);
+        if(n === l) _this.resolve(prompt);
       }
 
-      function fail(success, prompts) {
+      function fail(prompt) {
         if(rejected) return;
         rejected = true;
-        _this.reject(success, prompts);
+        _this.reject(prompt);
       }
 
       //execute all at once
@@ -1253,7 +1255,7 @@ var FormExecution = null,
       var p = this.parent,
           ps = [];
       while(p) {
-        ps.push(p.name);
+        ps.unshift(p.name);
         p = p.parent;
       }
       var gap = "(" + ps.join(' < ') + ")";
@@ -1262,31 +1264,42 @@ var FormExecution = null,
       this.status = STATUS.RUNNING;
       if(this.domElem)
         this.domElem.triggerHandler("validating");
+
+      liveExecs.add(this);
     },
 
-    executed: function(success, prompts) {
+    executePassed: function(prompt) {
+      this.success = true;
+      this.prompt = prompt;
+      this.executed();
+    },
+    executeFailed: function(prompt) {
+      this.success = false;
+      this.prompt = prompt;
+      this.executed();
+    },
+
+    executed: function() {
       this.status = STATUS.COMPLETE;
+      liveExecs.remove(this);
 
-      this.success = success;
-      this.log(success ? 'Passed' : 'Failed');
-
-      if(prompts) this.log("Has prompts");
+      this.log(this.success ? 'Passed' : 'Failed', this.prompt);
 
       if(this.domElem)
-        this.domElem.triggerHandler("validated", arguments);
+        this.domElem.triggerHandler("validated", this.success);
     },
 
     //resolves or rejects the execution's deferred object 'd'
-    resolve: function(prompts) {
-      return this.resolveOrReject(true, prompts);
+    resolve: function(prompt) {
+      return this.resolveOrReject(true, prompt);
     },
-    reject: function(prompts) {
-      return this.resolveOrReject(false, prompts);
+    reject: function(prompt) {
+      return this.resolveOrReject(false, prompt);
     },
-    resolveOrReject: function(success, prompts) {
+    resolveOrReject: function(success, prompt) {
       var fn = success ? '__resolve' : '__reject';
       if(!this.d || !this.d[fn]) throw "Invalid Deferred Object";
-      this.nextTick(this.d[fn], [success, prompts], 0);
+      this.nextTick(this.d[fn], [prompt], 0);
       return this.d.promise();
     },
     restrictDeferred: function(d) {
@@ -1367,7 +1380,7 @@ var FormExecution = null,
 
       //not required
       if(!ruleParams.required && !$.trim(this.domElem.val())) {
-        this.log("skip (not required)");
+        this.warn("skip (not required)");
         return true;
       }
 
@@ -1387,9 +1400,9 @@ var FormExecution = null,
       return false;
     },
 
-    executed: function(success, prompts) {
-      this._super(success);
-      this.element.handleResult(success, prompts);
+    executed: function() {
+      this._super();
+      this.element.handleResult(this);
     }
 
   });
@@ -1421,14 +1434,11 @@ var FormExecution = null,
       if(response === undefined)
         this.warn("Undefined result");
 
-      var success = response === true;
-      var prompts = this.extractPrompts(response);
-
       //success
-      if(success)
-        this.resolve(prompts);
+      if(response === true)
+        this.resolve(response);
       else
-        this.reject(prompts);
+        this.reject(response);
 
     },
 
@@ -1467,13 +1477,17 @@ var FormExecution = null,
       return this.d.promise();
     },
 
+    //filter response
+    resolveOrReject: function(success, response) {
+      return this._super(success, this.extractPrompt(response));
+    },
+
     //transforms the result from the rule
     //into an array of elems and errors
-    extractPrompts: function(response) {
+    extractPrompt: function(response) {
       if(typeof response === 'string')
-        return [[this.element.reskinElem, response]];
-      else if(!$.isArray(response))
-        return [[this.element.reskinElem, null]];
+        return response;
+      return null;
     }
 
   });
@@ -1511,9 +1525,16 @@ var FormExecution = null,
         sharedExec = this.group.exec = this;
       } else {
         this.log("SLAVE (", sharedExec.name, ")");
-        this.linkExec(sharedExec);
         this.members = sharedExec.members;
+
+        for(i = 0; i < this.members.length; ++i)
+          if(this.element === this.members[i].element) {
+            this.log("ALREADY A MEMBER");
+            return this.reject();
+          }
+
         this.members.push(this);
+        this.linkExec(sharedExec);
       }
 
       if(fieldOrigin)
@@ -1564,26 +1585,18 @@ var FormExecution = null,
       //   master.parent.d.fail(this.reject);
     },
 
-    extractPrompts: function(response) {
+    extractPrompt: function(response) {
 
       if(!response || !this.members.length)
         return this._super(response);
 
-      var exec, i, domElem, result, prompts = [],
-          isObj = $.isPlainObject(response),
+      var isObj = $.isPlainObject(response),
           isStr = (typeof response === 'string');
 
-      for(i = 0; i < this.members.length; ++i) {
-        exec = this.members[i];
+      if(isStr && this === this.group.exec) return response;
+      if(isObj && response[this.id]) return response[this.id];
 
-        if(isStr)
-          result = (this === exec) ? response : null;
-        else if(isObj)
-          result = response[exec.id];
-
-        prompts.push([exec.element.reskinElem, result]);
-      }
-      return prompts;
+      return null;
     }
 
   });

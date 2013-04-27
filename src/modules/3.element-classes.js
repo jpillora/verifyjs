@@ -74,9 +74,14 @@ var ValidationForm = null;
 
     //for use with $(field).validate(callback);
     validate: function(callback) {
+      if(!callback) callback = $.noop; 
+
       var exec = new FieldExecution(this);
-      exec.execute().always(function(result) {
-        if(callback) callback(result && result.success, result);
+      
+      exec.execute().done(function() {
+        callback(true);
+      }).fail(function() {
+        callback(false);
       });
       return;
     },
@@ -108,44 +113,29 @@ var ValidationForm = null;
 
     },
 
-    handleResult: function(success, prompts) {
+    handleResult: function(exec) {
+
 
       // console.warn(this.name + " display: ", exec.type, exec.name);
 
-      if(!prompts) return;
-      if(prompts && !$.isArray(prompts))
-        throw "Prompts must be an array (not: "+$.type(prompts)+")";
+      var opts = this.options;
 
-      if(!$.isArray(prompts)) return;
+      //show prompt
+      if(opts.showPrompt)
+        opts.prompt(this.reskinElem, exec.prompt);
 
-      var opts = this.options, texts = [], text,
-          container = null, i, domElem;
-
-      for(i = 0; i < prompts.length; ++i) {
-
-        args = prompts[i];
-
-        if(opts.showPrompt)
-          opts.prompt.apply(opts.prompt, args);
-
-        if(args[1]) texts.push(args[1]);
-
-        container = opts.errorContainer(args[0]);
-        if(container && container.length)
-          container.toggleClass(opts.errorClass, !success);
-      }
-
-      this.trackResult(texts.join(','), success);
-    },
-
-    trackResult: function(text, success) {
+      //toggle error classes
+      var container = opts.errorContainer(this.reskinElem);
+      if(container && container.length)
+        container.toggleClass(opts.errorClass, !exec.success);
+      
+      //track event
       this.options.track(
         'Validate',
         [this.form.name,this.name].join(' '),
-        success ? 'Valid' : text ? text : 'Skip'
+        exec.success ? 'Valid' : exec.prompt ? '"'+exec.prompt+'"' : 'Silent Fail'
       );
     }
-
 
   });
 
@@ -267,6 +257,7 @@ var ValidationForm = null;
     },
 
     doSubmit: function(success) {
+      this.log('doSubmit', success);
       this.submitPending = false;
       this.submitResult = success;
       this.domElem.submit(); //trigger onSubmit, though with a result
@@ -291,11 +282,14 @@ var ValidationForm = null;
      * ===================================== */
 
     validate: function(callback) {
-      this.updateFields();
+      if(!callback) callback = $.noop; 
 
       var exec = new FormExecution(this);
-      exec.execute().always(function(result) {
-        if(callback) callback(result && result.success, result);
+      
+      exec.execute().done(function() {
+        callback(true);
+      }).fail(function() {
+        callback(false);
       });
       return;
     },
