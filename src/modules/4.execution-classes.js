@@ -87,15 +87,15 @@ var FormExecution = null,
       if(!$.isArray(fns) || l === 0)
         return this.resolve();
 
-      function pass(prompt) {
+      function pass(response) {
         n++;
-        if(n === l) _this.resolve(prompt);
+        if(n === l) _this.resolve(response);
       }
 
-      function fail(prompt) {
+      function fail(response) {
         if(rejected) return;
         rejected = true;
-        _this.reject(prompt);
+        _this.reject(response);
       }
 
       //execute all at once
@@ -135,14 +135,14 @@ var FormExecution = null,
       liveExecs.add(this);
     },
 
-    executePassed: function(prompt) {
+    executePassed: function(response) {
       this.success = true;
-      this.prompt = prompt;
+      this.response = this.filterResponse(response);
       this.executed();
     },
-    executeFailed: function(prompt) {
+    executeFailed: function(response) {
       this.success = false;
-      this.prompt = prompt;
+      this.response = this.filterResponse(response);
       this.executed();
     },
 
@@ -150,24 +150,29 @@ var FormExecution = null,
       this.status = STATUS.COMPLETE;
       liveExecs.remove(this);
 
-      this.log(this.success ? 'Passed' : 'Failed', this.prompt);
+      this.log((this.success ? 'Passed' : 'Failed') + ": " + this.response);
 
       if(this.domElem)
         this.domElem.triggerHandler("validated", this.success);
     },
 
     //resolves or rejects the execution's deferred object 'd'
-    resolve: function(prompt) {
-      return this.resolveOrReject(true, prompt);
+    resolve: function(response) {
+      return this.resolveOrReject(true, response);
     },
-    reject: function(prompt) {
-      return this.resolveOrReject(false, prompt);
+    reject: function(response) {
+      return this.resolveOrReject(false, response);
     },
-    resolveOrReject: function(success, prompt) {
+    resolveOrReject: function(success, response) {
       var fn = success ? '__resolve' : '__reject';
       if(!this.d || !this.d[fn]) throw "Invalid Deferred Object";
-      this.nextTick(this.d[fn], [prompt], 0);
+      this.nextTick(this.d[fn], [response], 0);
       return this.d.promise();
+    },
+    filterResponse: function(response) {
+      if(typeof response === 'string')
+        return response;
+      return null;
     },
     restrictDeferred: function(d) {
       if(!d) d = $.Deferred();
@@ -269,7 +274,16 @@ var FormExecution = null,
 
     executed: function() {
       this._super();
-      this.element.handleResult(this);
+
+      //pass error to element
+      var i, exec = this,
+          children = this.children;
+      for(i = 0; i < children.length; ++i)
+        if(children[i].success === false) {
+          exec = children[i];
+          break;
+        }
+      this.element.handleResult(exec);
     }
 
   });
@@ -342,19 +356,6 @@ var FormExecution = null,
         this.nextTick(this.callback, [response]);
 
       return this.d.promise();
-    },
-
-    //filter response
-    resolveOrReject: function(success, response) {
-      return this._super(success, this.extractPrompt(response));
-    },
-
-    //transforms the result from the rule
-    //into an array of elems and errors
-    extractPrompt: function(response) {
-      if(typeof response === 'string')
-        return response;
-      return null;
     }
 
   });
@@ -412,7 +413,7 @@ var FormExecution = null,
           continue;
 
         this.log("CHECK:", field.name);
-        //let the user make their way onto 
+        //let the user make their way onto
         // the field first - silent fail!
         if(!field.touched) {
           this.log("FIELD NOT READY: ", field.name);
@@ -452,8 +453,7 @@ var FormExecution = null,
       //   master.parent.d.fail(this.reject);
     },
 
-    extractPrompt: function(response) {
-
+    filterResponse: function(response) {
       if(!response || !this.members.length)
         return this._super(response);
 

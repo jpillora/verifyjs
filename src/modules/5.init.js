@@ -14,7 +14,7 @@ $.fn.validate = function(callback) {
 $.fn.validate.version = VERSION;
 
 $.fn.verify = function(userOptions) {
-  return this.each(function(i) {
+  return this.each(function() {
 
     //get existing form class this element
     var form = $.verify.forms.find($(this));
@@ -31,6 +31,7 @@ $.fn.verify = function(userOptions) {
     Utils.checkOptions(userOptions);
     if(form) {
       form.extendOptions(userOptions);
+      form.updateFields();
     } else {
       form = new ValidationForm($(this), userOptions);
       $.verify.forms.add(form);
@@ -66,6 +67,7 @@ $.extend($.verify, {
  * ===================================== */
 
 $(function() {
+  if(globalOptions.autoInit)
   $("form").filter(function() {
     return $(this).find("[" + globalOptions.validateAttribute + "]").length > 0;
   }).verify();

@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/04/28
+/** Verify.js - v0.0.1 - 2013/04/30
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -336,6 +336,9 @@ var TypedSet = Set.extend({
 });
 var Utils = {
 
+  //bind method
+  bind: $.proxy,
+
   //check options - throws a warning if the option doesn't exist
   checkOptions: function(opts) {
     if(!opts) return;
@@ -427,6 +430,8 @@ var VERSION = "0.0.1",
 var globalOptions = {
   // Display log messages flag
   debug: false,
+  // Auto initialise forms (on DOM ready)
+  autoInit: true,
   // Attribute used to find validators
   validateAttribute: "data-validate",
   // Name of the event triggering field validation
@@ -478,15 +483,10 @@ CustomOptions.prototype = globalOptions;
 
 var BaseClass = Class.extend({
   name: "Class",
-
-  init: function() {
-  },
-
   toString: function() {
     return (this.type ? this.type + ": ":'') +
            (this.name ? this.name + ": ":'');
   },
-
   log: function() {
     if(!globalOptions.debug) return;
     log.apply(this, Utils.appendArg(arguments, this.toString()));
@@ -497,11 +497,10 @@ var BaseClass = Class.extend({
   info: function() {
     info.apply(this, Utils.appendArg(arguments, this.toString()));
   },
-
   bind: function(name) {
     var prop = this[name];
     if(prop && $.isFunction(prop))
-        this[name] = $.proxy(prop,this);
+        this[name] = Utils.bind(prop,this);
   },
   bindAll: function() {
     for(var propName in this)
@@ -514,7 +513,6 @@ var BaseClass = Class.extend({
       fn.apply(_this, args);
     }, ms || 0);
   }
-
 });
 // the Rule class will store all state relating to
 // the user definition, all rule state from the DOM
@@ -892,10 +890,10 @@ var ValidationForm = null;
 
     //for use with $(field).validate(callback);
     validate: function(callback) {
-      if(!callback) callback = $.noop; 
+      if(!callback) callback = $.noop;
 
       var exec = new FieldExecution(this);
-      
+
       exec.execute().done(function() {
         callback(true);
       }).fail(function() {
@@ -933,25 +931,22 @@ var ValidationForm = null;
 
     handleResult: function(exec) {
 
-
-      // console.warn(this.name + " display: ", exec.type, exec.name);
-
       var opts = this.options;
 
       //show prompt
       if(opts.showPrompt)
-        opts.prompt(this.reskinElem, exec.prompt);
+        opts.prompt(this.reskinElem, exec.response);
 
       //toggle error classes
       var container = opts.errorContainer(this.reskinElem);
       if(container && container.length)
         container.toggleClass(opts.errorClass, !exec.success);
-      
+
       //track event
       this.options.track(
         'Validate',
         [this.form.name,this.name].join(' '),
-        exec.success ? 'Valid' : exec.prompt ? '"'+exec.prompt+'"' : 'Silent Fail'
+        exec.success ? 'Valid' : exec.response ? '"'+exec.response+'"' : 'Silent Fail'
       );
     }
 
@@ -1100,10 +1095,10 @@ var ValidationForm = null;
      * ===================================== */
 
     validate: function(callback) {
-      if(!callback) callback = $.noop; 
+      if(!callback) callback = $.noop;
 
       var exec = new FormExecution(this);
-      
+
       exec.execute().done(function() {
         callback(true);
       }).fail(function() {
@@ -1220,15 +1215,15 @@ var FormExecution = null,
       if(!$.isArray(fns) || l === 0)
         return this.resolve();
 
-      function pass(prompt) {
+      function pass(response) {
         n++;
-        if(n === l) _this.resolve(prompt);
+        if(n === l) _this.resolve(response);
       }
 
-      function fail(prompt) {
+      function fail(response) {
         if(rejected) return;
         rejected = true;
-        _this.reject(prompt);
+        _this.reject(response);
       }
 
       //execute all at once
@@ -1268,14 +1263,14 @@ var FormExecution = null,
       liveExecs.add(this);
     },
 
-    executePassed: function(prompt) {
+    executePassed: function(response) {
       this.success = true;
-      this.prompt = prompt;
+      this.response = this.filterResponse(response);
       this.executed();
     },
-    executeFailed: function(prompt) {
+    executeFailed: function(response) {
       this.success = false;
-      this.prompt = prompt;
+      this.response = this.filterResponse(response);
       this.executed();
     },
 
@@ -1283,24 +1278,29 @@ var FormExecution = null,
       this.status = STATUS.COMPLETE;
       liveExecs.remove(this);
 
-      this.log(this.success ? 'Passed' : 'Failed', this.prompt);
+      this.log((this.success ? 'Passed' : 'Failed') + ": " + this.response);
 
       if(this.domElem)
         this.domElem.triggerHandler("validated", this.success);
     },
 
     //resolves or rejects the execution's deferred object 'd'
-    resolve: function(prompt) {
-      return this.resolveOrReject(true, prompt);
+    resolve: function(response) {
+      return this.resolveOrReject(true, response);
     },
-    reject: function(prompt) {
-      return this.resolveOrReject(false, prompt);
+    reject: function(response) {
+      return this.resolveOrReject(false, response);
     },
-    resolveOrReject: function(success, prompt) {
+    resolveOrReject: function(success, response) {
       var fn = success ? '__resolve' : '__reject';
       if(!this.d || !this.d[fn]) throw "Invalid Deferred Object";
-      this.nextTick(this.d[fn], [prompt], 0);
+      this.nextTick(this.d[fn], [response], 0);
       return this.d.promise();
+    },
+    filterResponse: function(response) {
+      if(typeof response === 'string')
+        return response;
+      return null;
     },
     restrictDeferred: function(d) {
       if(!d) d = $.Deferred();
@@ -1402,7 +1402,16 @@ var FormExecution = null,
 
     executed: function() {
       this._super();
-      this.element.handleResult(this);
+
+      //pass error to element
+      var i, exec = this,
+          children = this.children;
+      for(i = 0; i < children.length; ++i)
+        if(children[i].success === false) {
+          exec = children[i];
+          break;
+        }
+      this.element.handleResult(exec);
     }
 
   });
@@ -1475,19 +1484,6 @@ var FormExecution = null,
         this.nextTick(this.callback, [response]);
 
       return this.d.promise();
-    },
-
-    //filter response
-    resolveOrReject: function(success, response) {
-      return this._super(success, this.extractPrompt(response));
-    },
-
-    //transforms the result from the rule
-    //into an array of elems and errors
-    extractPrompt: function(response) {
-      if(typeof response === 'string')
-        return response;
-      return null;
     }
 
   });
@@ -1545,7 +1541,7 @@ var FormExecution = null,
           continue;
 
         this.log("CHECK:", field.name);
-        //let the user make their way onto 
+        //let the user make their way onto
         // the field first - silent fail!
         if(!field.touched) {
           this.log("FIELD NOT READY: ", field.name);
@@ -1585,8 +1581,7 @@ var FormExecution = null,
       //   master.parent.d.fail(this.reject);
     },
 
-    extractPrompt: function(response) {
-
+    filterResponse: function(response) {
       if(!response || !this.members.length)
         return this._super(response);
 
@@ -1613,7 +1608,7 @@ $.fn.validate = function(callback) {
 $.fn.validate.version = VERSION;
 
 $.fn.verify = function(userOptions) {
-  return this.each(function(i) {
+  return this.each(function() {
 
     //get existing form class this element
     var form = $.verify.forms.find($(this));
@@ -1630,6 +1625,7 @@ $.fn.verify = function(userOptions) {
     Utils.checkOptions(userOptions);
     if(form) {
       form.extendOptions(userOptions);
+      form.updateFields();
     } else {
       form = new ValidationForm($(this), userOptions);
       $.verify.forms.add(form);
@@ -1665,6 +1661,7 @@ $.extend($.verify, {
  * ===================================== */
 
 $(function() {
+  if(globalOptions.autoInit)
   $("form").filter(function() {
     return $(this).find("[" + globalOptions.validateAttribute + "]").length > 0;
   }).verify();

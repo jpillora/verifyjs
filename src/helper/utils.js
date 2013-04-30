@@ -4,6 +4,9 @@
 
 var Utils = {
 
+  //bind method
+  bind: $.proxy,
+
   //check options - throws a warning if the option doesn't exist
   checkOptions: function(opts) {
     if(!opts) return;

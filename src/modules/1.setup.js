@@ -12,6 +12,8 @@ var VERSION = "0.0.1",
 var globalOptions = {
   // Display log messages flag
   debug: false,
+  // Auto initialise forms (on DOM ready)
+  autoInit: true,
   // Attribute used to find validators
   validateAttribute: "data-validate",
   // Name of the event triggering field validation
@@ -63,15 +65,10 @@ CustomOptions.prototype = globalOptions;
 
 var BaseClass = Class.extend({
   name: "Class",
-
-  init: function() {
-  },
-
   toString: function() {
     return (this.type ? this.type + ": ":'') +
            (this.name ? this.name + ": ":'');
   },
-
   log: function() {
     if(!globalOptions.debug) return;
     log.apply(this, Utils.appendArg(arguments, this.toString()));
@@ -82,11 +79,10 @@ var BaseClass = Class.extend({
   info: function() {
     info.apply(this, Utils.appendArg(arguments, this.toString()));
   },
-
   bind: function(name) {
     var prop = this[name];
     if(prop && $.isFunction(prop))
-        this[name] = $.proxy(prop,this);
+        this[name] = Utils.bind(prop,this);
   },
   bindAll: function() {
     for(var propName in this)
@@ -99,5 +95,4 @@ var BaseClass = Class.extend({
       fn.apply(_this, args);
     }, ms || 0);
   }
-
 });

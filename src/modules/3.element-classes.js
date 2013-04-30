@@ -74,10 +74,10 @@ var ValidationForm = null;
 
     //for use with $(field).validate(callback);
     validate: function(callback) {
-      if(!callback) callback = $.noop; 
+      if(!callback) callback = $.noop;
 
       var exec = new FieldExecution(this);
-      
+
       exec.execute().done(function() {
         callback(true);
       }).fail(function() {
@@ -115,25 +115,22 @@ var ValidationForm = null;
 
     handleResult: function(exec) {
 
-
-      // console.warn(this.name + " display: ", exec.type, exec.name);
-
       var opts = this.options;
 
       //show prompt
       if(opts.showPrompt)
-        opts.prompt(this.reskinElem, exec.prompt);
+        opts.prompt(this.reskinElem, exec.response);
 
       //toggle error classes
       var container = opts.errorContainer(this.reskinElem);
       if(container && container.length)
         container.toggleClass(opts.errorClass, !exec.success);
-      
+
       //track event
       this.options.track(
         'Validate',
         [this.form.name,this.name].join(' '),
-        exec.success ? 'Valid' : exec.prompt ? '"'+exec.prompt+'"' : 'Silent Fail'
+        exec.success ? 'Valid' : exec.response ? '"'+exec.response+'"' : 'Silent Fail'
       );
     }
 
@@ -282,10 +279,10 @@ var ValidationForm = null;
      * ===================================== */
 
     validate: function(callback) {
-      if(!callback) callback = $.noop; 
+      if(!callback) callback = $.noop;
 
       var exec = new FormExecution(this);
-      
+
       exec.execute().done(function() {
         callback(true);
       }).fail(function() {
