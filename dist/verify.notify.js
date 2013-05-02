@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/04/30
+/** Verify.js - v0.0.1 - 2013/05/02
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -901,7 +901,7 @@ var Rule = BaseClass.extend({
 
     if(!$.isPlainObject(userObj))
       return this.warn("rule definition must be a function or an object");
-    
+
     //clone object to keep a canonical version intact
     this.userObj = $.extend(true, {}, userObj);
 
@@ -1110,7 +1110,7 @@ var ruleManager = null;
       if(builtRules[name])
         delete builtRules[name];
     }
-    
+
     $.extend(true, rawRules, data);
   };
 
@@ -1161,7 +1161,7 @@ var ruleManager = null;
     //add rule instances
     $.each(attrResults, function(i, result) {
       //special required case
-      if(result.name === 'required')
+      if(/required/.test(result.name))
         required = true;
 
       result.rule = getRule(result.name);
@@ -2113,11 +2113,11 @@ log("plugin added.");
 
             if (group.is(":checked"))
               break;
+
             if (group.size() === 1)
               return r.messages.single;
-            else
-              return r.messages.multiple;
-            break;
+
+            return r.messages.multiple;
 
           default:
             if (! $.trim(v))
@@ -2164,8 +2164,10 @@ log("plugin added.");
     phone: function(r) {
       r.val(r.val().replace(/\D/g,''));
       var v = r.val();
-      if(!v.match(/^[\d\s]+$/))
+      if(!v.match(/^\+?[\d\s]+$/))
         return "Use digits and spaces only";
+      if(v.match(/^\+/))
+        return true; //allow all international
       if(!v.match(/^0/))
         return "Number must start with 0";
       if(v.replace(/\s/g,"").length !== 10)

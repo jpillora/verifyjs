@@ -71,11 +71,11 @@
 
             if (group.is(":checked"))
               break;
+
             if (group.size() === 1)
               return r.messages.single;
-            else
-              return r.messages.multiple;
-            break;
+
+            return r.messages.multiple;
 
           default:
             if (! $.trim(v))
@@ -122,8 +122,10 @@
     phone: function(r) {
       r.val(r.val().replace(/\D/g,''));
       var v = r.val();
-      if(!v.match(/^[\d\s]+$/))
+      if(!v.match(/^\+?[\d\s]+$/))
         return "Use digits and spaces only";
+      if(v.match(/^\+/))
+        return true; //allow all international
       if(!v.match(/^0/))
         return "Number must start with 0";
       if(v.replace(/\s/g,"").length !== 10)

@@ -19,7 +19,7 @@ var Rule = BaseClass.extend({
 
     if(!$.isPlainObject(userObj))
       return this.warn("rule definition must be a function or an object");
-    
+
     //clone object to keep a canonical version intact
     this.userObj = $.extend(true, {}, userObj);
 
@@ -228,7 +228,7 @@ var ruleManager = null;
       if(builtRules[name])
         delete builtRules[name];
     }
-    
+
     $.extend(true, rawRules, data);
   };
 
@@ -279,7 +279,7 @@ var ruleManager = null;
     //add rule instances
     $.each(attrResults, function(i, result) {
       //special required case
-      if(result.name === 'required')
+      if(/required/.test(result.name))
         required = true;
 
       result.rule = getRule(result.name);
