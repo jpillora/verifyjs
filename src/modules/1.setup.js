@@ -5,6 +5,8 @@ var VERSION = "0.0.1",
     warn = cons.warn,
     info = cons.info;
 
+
+
 /* ===================================== *
  * Plugin Settings/Variables
  * ===================================== */
@@ -56,6 +58,9 @@ var globalOptions = {
 //option object creator inheriting from globals
 function CustomOptions(opts) {
   $.extend(true, this, opts);
+
+
+
 }
 CustomOptions.prototype = globalOptions;
 

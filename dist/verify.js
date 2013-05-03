@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/05/02
+/** Verify.js - v0.0.1 - 2013/05/03
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -334,6 +334,14 @@ var TypedSet = Set.extend({
       this.log("add failed - invalid type")
   }
 });
+//object create polyfill
+if (typeof Object.create !== 'function')
+  Object.create = function (o) {
+    function F() {}
+    F.prototype = o;
+    return new F();
+  };
+
 var Utils = {
 
   //bind method
@@ -423,6 +431,8 @@ var VERSION = "0.0.1",
     warn = cons.warn,
     info = cons.info;
 
+
+
 /* ===================================== *
  * Plugin Settings/Variables
  * ===================================== */
@@ -474,6 +484,9 @@ var globalOptions = {
 //option object creator inheriting from globals
 function CustomOptions(opts) {
   $.extend(true, this, opts);
+
+
+
 }
 CustomOptions.prototype = globalOptions;
 
@@ -523,44 +536,58 @@ var Rule = BaseClass.extend({
 
   init: function(name, userObj){
     this.name = name;
-    this.buildFn(userObj);
-  },
-
-  //extracts the validation function out of the user defined object
-  buildFn: function(userObj) {
 
     if(!$.isPlainObject(userObj))
       return this.warn("rule definition must be a function or an object");
 
+    this.type = userObj.__ruleType;
+
+    //infer parent object
+    this.parentName = userObj.extend;
+    this.extendInterface();
+    //does not inherit
+    if(!this.userObj) this.userObj = {};
     //clone object to keep a canonical version intact
-    this.userObj = $.extend(true, {}, userObj);
+    $.extend(this.userObj, userObj);
+    //infer 'fn' property
+    this.buildFn();
+    //rule is ready to be used
+    this.ready = true;
+  },
 
-    this.type = userObj.type;
+  extendInterface: function() {
 
-    //handle object.extend (may inherit a object.fn)
-    while($.type(this.userObj.extend) === 'string') {
-      //extend using another validator -> validator name
-      var otherName = this.userObj.extend;
-      delete this.userObj.extend;
+    if(typeof this.parentName !== 'string')
+      return;
 
-      var otherUserObj = ruleManager.getRawRule(otherName);
-      //check not extending itself
-      if(this.userObj === otherUserObj)
-        return this.warn("Cannot extend self");
-
-      //type check
-      if($.isPlainObject(otherUserObj))
-        this.userObj = $.extend(true, {}, otherUserObj, this.userObj);
-      else
-        return this.warn("Cannot extend: '"+otherName+"'");
+    //circular dependancy check - not extending itself or any of it's parents
+    var p = this;
+    while(p) {
+      if(p.name === this.parentName)
+        return this.warn("Rule already extends '%s'", this.parentName);
+      p = p.parent;
     }
 
+    //extend using another validator -> validator name
+    var parentRule = ruleManager.getRule(this.parentName);
+    if(!parentRule)
+      return;
+
+    this.parent = parentRule;
+
+    //type check
+    if(!(parentRule instanceof Rule))
+      return this.warn("Cannot extend: '"+otherName+"' invalid type");
+
+    this.userObj = Object.create(parentRule.userObj);
+  },
+
+  buildFn: function() {
     //handle object.fn
     if($.isFunction(this.userObj.fn)) {
 
       //move function into the rule
       this.fn = this.userObj.fn;
-      delete this.userObj.fn;
 
     //handle object.regexp
     } else if($.type(this.userObj.regex) === "regexp") {
@@ -576,16 +603,10 @@ var Rule = BaseClass.extend({
 
       })(this.userObj.regex);
 
-      delete this.userObj.regex;
-
     } else {
       return this.warn("rule definition lacks a function");
     }
-
-    this.ready = true;
-    //function built
   },
-
 
   //the 'this's in these interface mixins
   //refer to the rule 'r' object
@@ -660,7 +681,7 @@ var Rule = BaseClass.extend({
 var ruleManager = null;
 (function() {
 
-  //cached token parser - must be in form 'one(1,2,two(3,4),three.scope(6,7),five)'
+  //regex parser - with pre 'one(1,2),three.scope(6,7),five)'
   var parseString = function(str) {
 
     var chars = str.split(""),
@@ -668,6 +689,7 @@ var ruleManager = null;
         c, m, depth = 0;
 
     //replace argument commas with semi-colons
+    // TODO allow escaping of '(' ')' ','
     for(var i = 0, l = chars.length; i<l; ++i) {
       c = chars[i];
       if(c === '(') depth++;
@@ -706,10 +728,11 @@ var ruleManager = null;
       if(rawRules[name])
         warn("validator '%s' already exists", name);
 
+      //functions get auto-objectified
       if($.isFunction(obj[name]))
         obj[name] = { fn: obj[name] };
-
-      obj[name].type = type;
+      //
+      obj[name].__ruleType = type;
     }
 
     //deep extend rules by obj
@@ -752,12 +775,11 @@ var ruleManager = null;
     var r = builtRules[name],
         obj = rawRules[name];
 
-    if(!obj) {
+    if(!obj)
       warn("Missing rule: " + name);
-    } else if(!r) {
-      r = new Rule(name, obj);
-      builtRules[name] = r;
-    }
+    else if(!r)
+      r = builtRules[name] = new Rule(name, obj);
+
     return r;
   };
 
