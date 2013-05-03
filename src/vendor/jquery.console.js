@@ -16,7 +16,7 @@
       window.console[fns[i]] = $.noop;
 
   if(!$) return;
-  
+
   var I = function(i){ return i; };
 
   function log() {
@@ -40,7 +40,7 @@
 
     var a = $.map(args,I);
     a[0] = [opts.prefix, a[0], opts.postfix].join('');
-    var grp = $.type(a[a.length-1]) === 'boolean' ? a.pop() : null;
+    var grp = null;//$.type(a[a.length-1]) === 'boolean' ? a.pop() : null;
 
     //if(a[0]) a[0] = getName(this) + a[0];
     if(grp === true) window.console.group(a[0]);
@@ -75,7 +75,7 @@
 
   if($.console === undefined)
     $.console = console;
-  
+
   $.consoleNoConflict = console;
 
 }(jQuery));

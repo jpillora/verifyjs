@@ -17,9 +17,8 @@ var Rule = BaseClass.extend({
 
     this.type = userObj.__ruleType;
 
-    //infer parent object
-    this.parentName = userObj.extend;
-    this.extendInterface();
+    //construct user obj inheriting parent
+    this.extendInterface(userObj.extend);
     //does not inherit
     if(!this.userObj) this.userObj = {};
     //clone object to keep a canonical version intact
@@ -27,24 +26,24 @@ var Rule = BaseClass.extend({
     //infer 'fn' property
     this.buildFn();
     //rule is ready to be used
-    this.ready = true;
+    this.ready = this.fn !== undefined;
   },
 
-  extendInterface: function() {
+  extendInterface: function(parentName) {
 
-    if(typeof this.parentName !== 'string')
+    if(!parentName || typeof parentName !== 'string')
       return;
 
     //circular dependancy check - not extending itself or any of it's parents
-    var p = this;
-    while(p) {
-      if(p.name === this.parentName)
-        return this.warn("Rule already extends '%s'", this.parentName);
-      p = p.parent;
+    var p, name = parentName, names = [];
+    while(name) {
+      if(name === this.name)
+        return this.error("Rule already extends '%s'", name);
+      p = ruleManager.getRawRule(name);
+      name = p ? p.extend : null;
     }
-
     //extend using another validator -> validator name
-    var parentRule = ruleManager.getRule(this.parentName);
+    var parentRule = ruleManager.getRule(parentName);
     if(!parentRule)
       return;
 
@@ -52,16 +51,17 @@ var Rule = BaseClass.extend({
 
     //type check
     if(!(parentRule instanceof Rule))
-      return this.warn("Cannot extend: '"+otherName+"' invalid type");
+      return this.error("Cannot extend: '"+otherName+"' invalid type");
 
     this.userObj = Object.create(parentRule.userObj);
+    this.userObj.super = parentRule.userObj;
   },
 
   buildFn: function() {
     //handle object.fn
     if($.isFunction(this.userObj.fn)) {
 
-      //move function into the rule
+      //createe ref on the rule
       this.fn = this.userObj.fn;
 
     //handle object.regexp
@@ -79,7 +79,7 @@ var Rule = BaseClass.extend({
       })(this.userObj.regex);
 
     } else {
-      return this.warn("rule definition lacks a function");
+      return this.error("Rule has no function");
     }
   },
 
