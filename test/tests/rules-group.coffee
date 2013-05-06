@@ -13,7 +13,7 @@ describe "Group validation rules", ->
   describe "'requireAll' rule", ->
 
     beforeEach ->
-      $('#konacha').html """
+      $('#fixtures').html """
         <div data-demo>
           <form>
             <input name="field1" value="abc" data-validate="validator1">

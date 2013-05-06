@@ -16,7 +16,7 @@ describe "Basic validations", ->
   """
 
   beforeEach ->
-    $('#konacha').html html
+    $('#fixtures').html html
     form = $("form")
     form.verify(skipHiddenFields: false)
 

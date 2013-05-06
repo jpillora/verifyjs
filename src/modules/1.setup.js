@@ -32,12 +32,14 @@ var globalOptions = {
   skipDisabledFields: true,
   // What class name to apply to the 'errorContainer'
   errorClass: "error",
-  // Filter method to find element to apply error class (default: the input)
+  // Filter method to find element to apply error class
   errorContainer: function (e) {
     return e;
   },
   // Filter method to find element which reskins the current element
-  reskinContainer: null,
+  reskinContainer: function (e) {
+    return e;
+  },
   //Before form-submit hook
   beforeSubmit: function(e, result) {
     return result;

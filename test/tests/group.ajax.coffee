@@ -33,7 +33,7 @@ describe "Group validations (Ajax)", ->
           r.callback data.result || 'Failed'
 
   beforeEach ->
-    $('#konacha').html html
+    $('#fixtures').html html
     runCount = 0
     form = $("form")
     form.verify()

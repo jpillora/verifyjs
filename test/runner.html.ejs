@@ -1,0 +1,50 @@
+
+<html>
+  <head>
+    <title>Mocha - jQuery Validation Engine Tests</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <%
+      function render(f, base) {
+        var m = f.match(/\.(\w+)$/);
+        if(!m) return '';
+        var url = base + '/' + f;
+        if(m[1] === 'js')
+          return '<script type="text/javascript" src="' + url +'"></script>\n';
+        if(m[1] === 'css')
+          return '<link rel="stylesheet" href="' + url +'"/>\n';
+        return '';
+      }
+    %>
+    <!-- libs -->
+    <% libs.forEach(function(l) {  %><%- render(l, '../lib') %><% }); %>
+    <!-- setup mocha (adds BDD methods) -->
+    <script type="text/javascript">mocha.setup('bdd');</script>
+
+    <!-- plugin -->
+    <script type="text/javascript" src="../../dist/verify.js"></script>
+
+    <!-- tests -->
+    <% tests.forEach(function(t) { %><%- render(t, '.')       %><% }); %>
+
+    <script type="text/javascript">
+      afterEach(function() {
+        $("#fixtures").empty();
+      })
+
+      var expect = chai.expect;
+      var should = chai.should();
+      var assert = function(expr, msg) {
+        if (!expr) throw new Error(msg || 'failed');
+      }
+
+      if (navigator.userAgent.indexOf('PhantomJS') === -1)
+        $(mocha.run);
+    </script>
+
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <div id="fixtures"></div>
+  </body>
+</html>

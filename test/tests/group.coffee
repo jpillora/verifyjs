@@ -25,7 +25,7 @@ describe "Group validations (Simple)", ->
       return true
 
   beforeEach ->
-    $('#konacha').html html
+    $('#fixtures').html html
     runCount = 0
     form = $("form")
     form.verify(skipHiddenFields: false)

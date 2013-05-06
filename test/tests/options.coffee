@@ -13,7 +13,7 @@ describe "Options", ->
   """
 
   beforeEach ->
-    $('#konacha').html html
+    $('#fixtures').html html
     form1 = $("#form1")
     form2 = $("#form2")
 
@@ -22,7 +22,7 @@ describe "Options", ->
     beforeEach ->
       form1.verify
         errorClass: "warning"
-    
+
       form2.verify()
 
       $.verify

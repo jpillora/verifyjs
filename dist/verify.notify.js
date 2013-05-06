@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/05/03
+/** Verify.js - v0.0.1 - 2013/05/06
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -516,9 +516,17 @@ function ajaxHelper(userOpts, r) {
   exec.ajax = $.ajax($.extend(defaults, userOpts, realCallbacks));
 }
 
+
+
+// var guid = function() {
+//   return (((1 + Math.random()) * 65536) | 0).toString(16).substring(1);
+// };
+
 var guid = function() {
-  return (((1 + Math.random()) * 65536) | 0).toString(16).substring(1);
+  return guid.curr++;
 };
+guid.curr = 1;
+
 $.fn.scrollView = function(onComplete) {
 
   var field = $(this).first();
@@ -739,7 +747,7 @@ var Utils = {
     return function () {
       var args = Array.prototype.slice.call(arguments),
       hash = "",
-      i  = args.length;
+      i  = args.length,
       currentArg = null;
       while(i--){
         currentArg = args[i];
@@ -828,12 +836,14 @@ var globalOptions = {
   skipDisabledFields: true,
   // What class name to apply to the 'errorContainer'
   errorClass: "error",
-  // Filter method to find element to apply error class (default: the input)
+  // Filter method to find element to apply error class
   errorContainer: function (e) {
     return e;
   },
   // Filter method to find element which reskins the current element
-  reskinContainer: null,
+  reskinContainer: function (e) {
+    return e;
+  },
   //Before form-submit hook
   beforeSubmit: function(e, result) {
     return result;
@@ -1314,23 +1324,22 @@ var ValidationForm = null;
         this.groups[r.name][scope].add(this);
       }
 
-      if(typeof this.options.reskinContainer === 'function')
-        this.reskinElem = this.options.reskinContainer(this.domElem);
-      else
-        this.reskinElem = this.domElem;
-
     },
 
     handleResult: function(exec) {
 
-      var opts = this.options;
+      var opts = this.options,
+          reskinElem = opts.reskinContainer(this.domElem);
+
+      if(!reskinElem || !reskinElem.length)
+        return this.warn("No reskin element found. Check 'reskinContainer' option.");
 
       //show prompt
       if(opts.showPrompt)
-        opts.prompt(this.reskinElem, exec.response);
+        opts.prompt(reskinElem, exec.response);
 
       //toggle error classes
-      var container = opts.errorContainer(this.reskinElem);
+      var container = opts.errorContainer(reskinElem);
       if(container && container.length)
         container.toggleClass(opts.errorClass, !exec.success);
 
@@ -1535,8 +1544,6 @@ var FormExecution = null,
     COMPLETE: 2
   };
 
-  window.liveExecs = new Set();
-
   //super class
   //set in private scope
   var Execution = BaseClass.extend({
@@ -1545,15 +1552,17 @@ var FormExecution = null,
 
     init: function(element, parent) {
       //corresponding <Form|Field>Element class
+
       this.element = element;
       if(element) {
+        this.prevExec = element.execution;
         element.execution = this;
         this.options = this.element.options;
         this.domElem = element.domElem;
       }
       //parent Execution class
       this.parent = parent;
-      this.name = guid();
+      this.name = '#'+guid();
       this.status = STATUS.NOT_STARTED;
       this.bindAll();
 
@@ -1564,8 +1573,12 @@ var FormExecution = null,
 
     },
 
+    isPending: function() {
+      return this.prevExec && this.prevExec.status !== STATUS.COMPLETE;
+    },
+
     toString: function() {
-      return this._super() + (this.element || this.rule).toString();
+      return this._super() + "[" + this.element.name + (!this.rule ? "" : ":" + this.rule.name) + "] ";
     },
 
     //execute in sequence, stop on fail
@@ -1637,6 +1650,17 @@ var FormExecution = null,
       });
     },
 
+    linkPass: function(that) {
+      that.d.done(this.resolve);
+    },
+    linkFail: function(that) {
+      that.d.fail(this.reject);
+    },
+    link: function(that) {
+      this.linkPass(that);
+      this.linkFail(that);
+    },
+
     execute: function() {
 
       var p = this.parent,
@@ -1652,7 +1676,7 @@ var FormExecution = null,
       if(this.domElem)
         this.domElem.triggerHandler("validating");
 
-      liveExecs.add(this);
+      return true;
     },
 
     executePassed: function(response) {
@@ -1668,7 +1692,6 @@ var FormExecution = null,
 
     executed: function() {
       this.status = STATUS.COMPLETE;
-      liveExecs.remove(this);
 
       this.log((this.success ? 'Passed' : 'Failed') + ": " + this.response);
 
@@ -1722,6 +1745,12 @@ var FormExecution = null,
 
     execute: function() {
       this._super();
+
+      if(this.isPending()) {
+        this.warn("pending... (waiting for %s)", this.prevExec.name);
+        return this.reject();
+      }
+
       this.log("exec fields #" + this.children.length);
       return this.parallelize(this.children);
     }
@@ -1742,6 +1771,11 @@ var FormExecution = null,
 
     execute: function() {
       this._super();
+
+      if(this.isPending()) {
+        this.warn("pending... (waiting for %s)", this.prevExec.name);
+        return this.reject();
+      }
 
       //execute rules
       var ruleParams = ruleManager.parseElement(this.element);
@@ -1777,8 +1811,8 @@ var FormExecution = null,
       }
 
       //custom-form-elements.js hidden fields
-      if(this.element.form.options.skipHiddenFields &&
-         this.element.reskinElem.is(':hidden')) {
+      if(this.options.skipHiddenFields &&
+         this.options.reskinContainer(this.domElem).is(':hidden')) {
         this.log("skip (hidden)");
         return true;
       }
@@ -1827,7 +1861,7 @@ var FormExecution = null,
     callback: function(response) {
       clearTimeout(this.t);
       this.callbackCount++;
-      this.log(this.rule.name + " (cb#" + this.callbackCount + "): " + response);
+      this.log(this.rule.name + " (cb:" + this.callbackCount + "): " + response);
 
       if(this.callbackCount > 1)
         return;
@@ -1904,25 +1938,37 @@ var FormExecution = null,
           groupOrigin = originExec instanceof GroupRuleExecution,
           fieldOrigin = !originExec,
           formOrigin = originExec instanceof FormExecution,
-          _this = this, i, j, field, exec, child;
+          _this = this, i, j, field, exec, child,
+          isMember = false;
 
       if(!sharedExec || sharedExec.status === STATUS.COMPLETE) {
         this.log("MASTER");
         this.members = [this];
         this.executeGroup = this._super;
         sharedExec = this.group.exec = this;
+
+        if(formOrigin)
+          sharedExec.linkFail(originExec);
+
       } else {
-        this.log("SLAVE (", sharedExec.name, ")");
+
         this.members = sharedExec.members;
-
         for(i = 0; i < this.members.length; ++i)
-          if(this.element === this.members[i].element) {
-            this.log("ALREADY A MEMBER");
-            return this.reject();
-          }
+          if(this.element === this.members[i].element)
+            isMember = true;
 
-        this.members.push(this);
-        this.linkExec(sharedExec);
+        if(isMember) {
+          //start a new execution - reject old
+          this.log("ALREADY A MEMBER OF %s", sharedExec.name);
+          this.reject();
+          return;
+
+        } else {
+          this.log("SLAVE TO %s", sharedExec.name);
+          this.members.push(this);
+          this.link(sharedExec);
+          if(this.parent) sharedExec.linkFail(this.parent);
+        }
       }
 
       if(fieldOrigin)
@@ -1950,27 +1996,18 @@ var FormExecution = null,
         exec.execute();
       }
 
+      var groupSize = this.group.size(),
+          execSize = sharedExec.members.length;
 
-      if(this.group.size() === sharedExec.members.length &&
+      if(groupSize === execSize&&
          sharedExec.status === STATUS.NOT_STARTED) {
         sharedExec.log("RUN");
         sharedExec.executeGroup();
       } else {
-        this.log("WAIT");
+        this.log("WAIT (" + execSize + "/" + groupSize + ")");
       }
 
       return this.d.promise();
-    },
-
-    linkExec: function(master) {
-      //use the status of this group
-      //as the status of each linked
-      master.d.done(this.resolve).fail(this.reject);
-      // todo
-      //silent fail if one of the linked fields' rules
-      //fails prior to reaching the group validation
-      // if(master.parent)
-      //   master.parent.d.fail(this.reject);
     },
 
     filterResponse: function(response) {

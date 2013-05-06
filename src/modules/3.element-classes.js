@@ -106,23 +106,22 @@ var ValidationForm = null;
         this.groups[r.name][scope].add(this);
       }
 
-      if(typeof this.options.reskinContainer === 'function')
-        this.reskinElem = this.options.reskinContainer(this.domElem);
-      else
-        this.reskinElem = this.domElem;
-
     },
 
     handleResult: function(exec) {
 
-      var opts = this.options;
+      var opts = this.options,
+          reskinElem = opts.reskinContainer(this.domElem);
+
+      if(!reskinElem || !reskinElem.length)
+        return this.warn("No reskin element found. Check 'reskinContainer' option.");
 
       //show prompt
       if(opts.showPrompt)
-        opts.prompt(this.reskinElem, exec.response);
+        opts.prompt(reskinElem, exec.response);
 
       //toggle error classes
-      var container = opts.errorContainer(this.reskinElem);
+      var container = opts.errorContainer(reskinElem);
       if(container && container.length)
         container.toggleClass(opts.errorClass, !exec.success);
 

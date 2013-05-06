@@ -2,7 +2,7 @@
 
 #AJAX TESTS
 describe "Ajax validations", ->
-  
+
   form = null
   html = """
     <div data-demo>
@@ -27,7 +27,7 @@ describe "Ajax validations", ->
         `undefined`
 
   beforeEach ->
-    $('#konacha').html html
+    $('#fixtures').html html
     form = $("form")
     form.verify(skipHiddenFields: false)
 

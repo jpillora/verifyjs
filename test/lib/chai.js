@@ -988,25 +988,25 @@
        *     // deep referencing
        *     var deepObj = {
        *         green: { tea: 'matcha' }
-       *       , teas: [ 'chai', 'matcha', { tea: 'konacha' } ]
+       *       , teas: [ 'chai', 'matcha', { tea: 'fixtures' } ]
        *     };
 
        *     expect(deepObj).to.have.deep.property('green.tea', 'matcha');
        *     expect(deepObj).to.have.deep.property('teas[1]', 'matcha');
-       *     expect(deepObj).to.have.deep.property('teas[2].tea', 'konacha');
+       *     expect(deepObj).to.have.deep.property('teas[2].tea', 'fixtures');
        *
        * You can also use an array as the starting point of a `deep.property`
        * assertion, or traverse nested arrays.
        *
        *     var arr = [
-       *         [ 'chai', 'matcha', 'konacha' ]
+       *         [ 'chai', 'matcha', 'fixtures' ]
        *       , [ { tea: 'chai' }
        *         , { tea: 'matcha' }
-       *         , { tea: 'konacha' } ]
+       *         , { tea: 'fixtures' } ]
        *     ];
        *
        *     expect(arr).to.have.deep.property('[0][1]', 'matcha');
-       *     expect(arr).to.have.deep.property('[1][2].tea', 'konacha');
+       *     expect(arr).to.have.deep.property('[1][2].tea', 'fixtures');
        *
        * Furthermore, `property` changes the subject of the assertion
        * to be the value of that property from the original object. This
@@ -1020,7 +1020,7 @@
        *     expect(deepObj).to.have.property('teas')
        *       .that.is.an('array')
        *       .with.deep.property('[2]')
-       *         .that.deep.equals({ tea: 'konacha' });
+       *         .that.deep.equals({ tea: 'fixtures' });
        *
        * @name property
        * @alias deep.property
@@ -2318,7 +2318,7 @@
        * different from that given by `value`. `property` can use dot- and
        * bracket-notation for deep reference.
        *
-       *     assert.deepPropertyNotVal({ tea: { green: 'matcha' }}, 'tea.green', 'konacha');
+       *     assert.deepPropertyNotVal({ tea: { green: 'matcha' }}, 'tea.green', 'fixtures');
        *
        * @name deepPropertyNotVal
        * @param {Object} object
@@ -3249,7 +3249,7 @@
         return html;
       }
     };
-      
+
     // Returns true if object is a DOM element.
     var isDOMElement = function (object) {
       if (typeof HTMLElement === 'object') {

@@ -1,0 +1,52 @@
+
+<html>
+  <head>
+    <title>Mocha - jQuery Validation Engine Tests</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    
+    <!-- libs -->
+    <script type="text/javascript" src="../lib/chai.js"></script>
+<script type="text/javascript" src="../lib/coffee-script.min.js"></script>
+<script type="text/javascript" src="../lib/jquery.js"></script>
+<link rel="stylesheet" href="../lib/mocha.css"/>
+<script type="text/javascript" src="../lib/mocha.js"></script>
+<script type="text/javascript" src="../lib/underscore.js"></script>
+
+    <!-- setup mocha (adds BDD methods) -->
+    <script type="text/javascript">mocha.setup('bdd');</script>
+
+    <!-- plugin -->
+    <script type="text/javascript" src="../../dist/verify.js"></script>
+
+    <!-- tests -->
+    <script type="text/javascript" src="./ajax.js"></script>
+<script type="text/javascript" src="./basic.js"></script>
+<script type="text/javascript" src="./group.js"></script>
+<script type="text/javascript" src="./options.js"></script>
+<script type="text/javascript" src="./rules-extending.js"></script>
+<script type="text/javascript" src="./rules-group.js"></script>
+<script type="text/javascript" src="./rules.js"></script>
+
+
+    <script type="text/javascript">
+      afterEach(function() {
+        $("#fixtures").empty();
+      })
+
+      var expect = chai.expect;
+      var should = chai.should();
+      var assert = function(expr, msg) {
+        if (!expr) throw new Error(msg || 'failed');
+      }
+
+      if (navigator.userAgent.indexOf('PhantomJS') === -1)
+        $(mocha.run);
+    </script>
+
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <div id="fixtures"></div>
+  </body>
+</html>

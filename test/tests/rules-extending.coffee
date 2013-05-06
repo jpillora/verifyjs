@@ -40,7 +40,7 @@ describe "Extending validation rules", ->
         true
 
   beforeEach ->
-    $('#konacha').html html
+    $('#fixtures').html html
     form = $("form")
     form.verify(skipHiddenFields: false)
 
