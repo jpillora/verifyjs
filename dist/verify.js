@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/05/06
+/** Verify.js - v0.0.1 - 2013/05/07
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -342,15 +342,14 @@ var TypedSet = Set.extend({
       this.log("add failed - invalid type")
   }
 });
-//object create polyfill
-if (typeof Object.create !== 'function')
-  Object.create = function (o) {
+var Utils = {
+
+  //object create implementation
+  create: function (o) {
     function F() {}
     F.prototype = o;
     return new F();
-  };
-
-var Utils = {
+  },
 
   //bind method
   bind: $.proxy,
@@ -588,8 +587,8 @@ var Rule = BaseClass.extend({
     if(!(parentRule instanceof Rule))
       return this.error("Cannot extend: '"+otherName+"' invalid type");
 
-    this.userObj = Object.create(parentRule.userObj);
-    this.userObj.super = parentRule.userObj;
+    this.userObj = Utils.create(parentRule.userObj);
+    this.userObj._super = parentRule.userObj;
   },
 
   buildFn: function() {

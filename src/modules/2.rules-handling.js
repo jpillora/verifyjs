@@ -53,8 +53,8 @@ var Rule = BaseClass.extend({
     if(!(parentRule instanceof Rule))
       return this.error("Cannot extend: '"+otherName+"' invalid type");
 
-    this.userObj = Object.create(parentRule.userObj);
-    this.userObj.super = parentRule.userObj;
+    this.userObj = Utils.create(parentRule.userObj);
+    this.userObj._super = parentRule.userObj;
   },
 
   buildFn: function() {

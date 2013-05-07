@@ -2,15 +2,16 @@
  * Utility class
  * ===================================== */
 
-//object create polyfill
-if (typeof Object.create !== 'function')
-  Object.create = function (o) {
+
+
+var Utils = {
+
+  //object create implementation
+  create: function (o) {
     function F() {}
     F.prototype = o;
     return new F();
-  };
-
-var Utils = {
+  },
 
   //bind method
   bind: $.proxy,
