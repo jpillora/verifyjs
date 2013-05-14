@@ -252,7 +252,8 @@ var FormExecution = null,
       var ruleParams = ruleManager.parseElement(this.element);
 
       //skip check
-      if(this.skipValidations(ruleParams))
+      this.skip = this.skipValidations(ruleParams);
+      if(this.skip)
         return this.resolve();
 
       //ready
@@ -289,7 +290,8 @@ var FormExecution = null,
       }
 
       //skip disabled
-      if(this.domElem.is('[disabled]')) {
+      if(this.options.skipDisabledFields &&
+         this.domElem.is('[disabled]')) {
         this.log("skip (disabled)");
         return true;
       }

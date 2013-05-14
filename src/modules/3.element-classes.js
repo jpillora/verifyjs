@@ -116,6 +116,14 @@ var ValidationForm = null;
       if(!reskinElem || !reskinElem.length)
         return this.warn("No reskin element found. Check 'reskinContainer' option.");
 
+      //handle first error
+      if(!exec.success &&
+         exec.parent.type === 'FormExecution' &&
+         !exec.parent.handledError) {
+        exec.parent.handledError = true;
+        this.scrollFocus(reskinElem);
+      }
+
       //show prompt
       if(opts.showPrompt)
         opts.prompt(reskinElem, exec.response);
@@ -131,6 +139,21 @@ var ValidationForm = null;
         [this.form.name,this.name].join(' '),
         exec.success ? 'Valid' : exec.response ? '"'+exec.response+'"' : 'Silent Fail'
       );
+    },
+
+    //listening for 'validate' event
+    scrollFocus: function(reskinElem) {
+
+      var callback = $.noop;
+      if(this.options.focusFirstField)
+        callback = function() {
+          reskinElem.focus();
+        };
+
+      if (this.options.scroll)
+        reskinElem.verifyScrollView(callback);
+      else if(this.options.focusFirstField)
+        field.focus();
     }
 
   });
@@ -288,27 +311,6 @@ var ValidationForm = null;
         callback(false);
       });
       return;
-    },
-
-    //listening for 'validate' event
-    scrollFocus: function() {
-
-      var lastExec = this.execution;
-
-      if(!lastExec.errors.length) return;
-
-      var field = lastExec.errors[0].field;
-
-      var doFocus =
-        this.options.focusFirstField &&
-        field.is("input[type=text]");
-
-      if (this.options.scroll)
-        field.scrollView(function() {
-          if(doFocus) field.focus();
-        });
-      else if(doFocus)
-        field.focus();
     }
   });
 

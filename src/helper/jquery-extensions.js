@@ -3,20 +3,28 @@
  * jQuery Extensions
  * ===================================== */
 
-$.fn.scrollView = function(onComplete) {
-
+$.fn.verifyScrollView = function(onComplete) {
   var field = $(this).first();
-  if(field.length === 1) {
-    if(field.is(".styled")) field = field.siblings("span");
-    $('html, body').animate({
-        scrollTop: Math.max(0,field.offset().top - 100)
-    }, {
-        duration: 1000,
-        complete: onComplete || $.noop
-    });
-  }
+  if(field.length !== 1) return $(this);
+  return $(this).verifyScrollTo(field, onComplete);
+};
 
-  return $(this);
+$.fn.verifyScrollTo = function( target, options, callback ){
+  if(typeof options == 'function' && arguments.length == 2){ callback = options; options = target; }
+  var settings = $.extend({
+    scrollTarget  : target,
+    offsetTop     : 50,
+    duration      : 500,
+    easing        : 'swing'
+  }, options);
+  return this.each(function(){
+    var scrollPane = $(this);
+    var scrollTarget = (typeof settings.scrollTarget == "number") ? settings.scrollTarget : $(settings.scrollTarget);
+    var scrollY = (typeof scrollTarget == "number") ? scrollTarget : scrollTarget.offset().top + scrollPane.scrollTop() - parseInt(settings.offsetTop, 10);
+    scrollPane.animate({scrollTop : scrollY }, parseInt(settings.duration, 10), settings.easing, function(){
+      if (typeof callback == 'function') { callback.call(this); }
+    });
+  });
 };
 
 $.fn.equals = function(that) {

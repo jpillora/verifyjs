@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/05/07
+/** Verify.js - v0.0.1 - 2013/05/14
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -527,20 +527,28 @@ var guid = function() {
 };
 guid.curr = 1;
 
-$.fn.scrollView = function(onComplete) {
-
+$.fn.verifyScrollView = function(onComplete) {
   var field = $(this).first();
-  if(field.length === 1) {
-    if(field.is(".styled")) field = field.siblings("span");
-    $('html, body').animate({
-        scrollTop: Math.max(0,field.offset().top - 100)
-    }, {
-        duration: 1000,
-        complete: onComplete || $.noop
-    });
-  }
+  if(field.length !== 1) return $(this);
+  return $(this).verifyScrollTo(field, onComplete);
+};
 
-  return $(this);
+$.fn.verifyScrollTo = function( target, options, callback ){
+  if(typeof options == 'function' && arguments.length == 2){ callback = options; options = target; }
+  var settings = $.extend({
+    scrollTarget  : target,
+    offsetTop     : 50,
+    duration      : 500,
+    easing        : 'swing'
+  }, options);
+  return this.each(function(){
+    var scrollPane = $(this);
+    var scrollTarget = (typeof settings.scrollTarget == "number") ? settings.scrollTarget : $(settings.scrollTarget);
+    var scrollY = (typeof scrollTarget == "number") ? scrollTarget : scrollTarget.offset().top + scrollPane.scrollTop() - parseInt(settings.offsetTop, 10);
+    scrollPane.animate({scrollTop : scrollY }, parseInt(settings.duration, 10), settings.easing, function(){
+      if (typeof callback == 'function') { callback.call(this); }
+    });
+  });
 };
 
 $.fn.equals = function(that) {
@@ -1333,6 +1341,14 @@ var ValidationForm = null;
       if(!reskinElem || !reskinElem.length)
         return this.warn("No reskin element found. Check 'reskinContainer' option.");
 
+      //handle first error
+      if(!exec.success &&
+         exec.parent.type === 'FormExecution' &&
+         !exec.parent.handledError) {
+        exec.parent.handledError = true;
+        this.scrollFocus(reskinElem);
+      }
+
       //show prompt
       if(opts.showPrompt)
         opts.prompt(reskinElem, exec.response);
@@ -1348,6 +1364,21 @@ var ValidationForm = null;
         [this.form.name,this.name].join(' '),
         exec.success ? 'Valid' : exec.response ? '"'+exec.response+'"' : 'Silent Fail'
       );
+    },
+
+    //listening for 'validate' event
+    scrollFocus: function(reskinElem) {
+
+      var callback = $.noop;
+      if(this.options.focusFirstField)
+        callback = function() {
+          reskinElem.focus();
+        };
+
+      if (this.options.scroll)
+        reskinElem.verifyScrollView(callback);
+      else if(this.options.focusFirstField)
+        field.focus();
     }
 
   });
@@ -1505,27 +1536,6 @@ var ValidationForm = null;
         callback(false);
       });
       return;
-    },
-
-    //listening for 'validate' event
-    scrollFocus: function() {
-
-      var lastExec = this.execution;
-
-      if(!lastExec.errors.length) return;
-
-      var field = lastExec.errors[0].field;
-
-      var doFocus =
-        this.options.focusFirstField &&
-        field.is("input[type=text]");
-
-      if (this.options.scroll)
-        field.scrollView(function() {
-          if(doFocus) field.focus();
-        });
-      else if(doFocus)
-        field.focus();
     }
   });
 
@@ -1780,7 +1790,8 @@ var FormExecution = null,
       var ruleParams = ruleManager.parseElement(this.element);
 
       //skip check
-      if(this.skipValidations(ruleParams))
+      this.skip = this.skipValidations(ruleParams);
+      if(this.skip)
         return this.resolve();
 
       //ready
@@ -1817,7 +1828,8 @@ var FormExecution = null,
       }
 
       //skip disabled
-      if(this.domElem.is('[disabled]')) {
+      if(this.options.skipDisabledFields &&
+         this.domElem.is('[disabled]')) {
         this.log("skip (disabled)");
         return true;
       }
