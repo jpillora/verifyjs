@@ -117,12 +117,12 @@ var ValidationForm = null;
         return this.warn("No reskin element found. Check 'reskinContainer' option.");
 
       //handle first error
-      if(!exec.success &&
-         exec.parent.type === 'FormExecution' &&
-         !exec.parent.handledError) {
-        exec.parent.handledError = true;
-        this.scrollFocus(reskinElem);
-      }
+      // if(!exec.success &&
+      //    exec.parent.type === 'FormExecution' &&
+      //    !exec.parent.handledError) {
+      //   exec.parent.handledError = true;
+      //   this.scrollFocus(reskinElem);
+      // }
 
       //show prompt
       if(opts.showPrompt)
