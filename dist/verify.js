@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/05/22
+/** Verify.js - v0.0.1 - 2013/06/08
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -15,7 +15,7 @@
       window.console[fns[i]] = $.noop;
 
   if(!$) return;
-
+  
   var I = function(i){ return i; };
 
   function log() {
@@ -39,7 +39,7 @@
 
     var a = $.map(args,I);
     a[0] = [opts.prefix, a[0], opts.postfix].join('');
-    var grp = null;//$.type(a[a.length-1]) === 'boolean' ? a.pop() : null;
+    var grp = $.type(a[a.length-1]) === 'boolean' ? a.pop() : null;
 
     //if(a[0]) a[0] = getName(this) + a[0];
     if(grp === true) window.console.group(a[0]);
@@ -74,7 +74,7 @@
 
   if($.console === undefined)
     $.console = console;
-
+  
   $.consoleNoConflict = console;
 
 }(jQuery));
@@ -587,7 +587,7 @@ var Rule = BaseClass.extend({
     //extend using another validator -> validator name
     var parentRule = ruleManager.getRule(parentName);
     if(!parentRule)
-      return;
+      return this.warn("Rule missing '%s'", name);
 
     this.parent = parentRule;
 
@@ -596,7 +596,7 @@ var Rule = BaseClass.extend({
       return this.error("Cannot extend: '"+otherName+"' invalid type");
 
     this.userObj = Utils.create(parentRule.userObj);
-    this.userObj._super = parentRule.userObj;
+    this.userObj.parent = parentRule.userObj;
   },
 
   buildFn: function() {
@@ -1157,6 +1157,8 @@ var ValidationForm = null;
 
     validate: function(callback) {
       if(!callback) callback = $.noop;
+
+      this.updateFields();
 
       var exec = new FormExecution(this);
 

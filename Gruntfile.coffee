@@ -49,7 +49,7 @@ module.exports = (grunt) ->
       " */\n"
     webget:
       notify:
-        src: "https://raw.github.com/jpillora/notifyjs/master/dist/notify.js"
+        src: "https://raw.github.com/jpillora/notifyjs/master/dist/notify-combined.js"
         dest: "src/vendor/notify.js"
 
       console:

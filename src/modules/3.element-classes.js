@@ -303,6 +303,8 @@ var ValidationForm = null;
     validate: function(callback) {
       if(!callback) callback = $.noop;
 
+      this.updateFields();
+
       var exec = new FormExecution(this);
 
       exec.execute().done(function() {

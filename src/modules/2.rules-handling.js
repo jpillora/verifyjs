@@ -45,7 +45,7 @@ var Rule = BaseClass.extend({
     //extend using another validator -> validator name
     var parentRule = ruleManager.getRule(parentName);
     if(!parentRule)
-      return;
+      return this.warn("Rule missing '%s'", name);
 
     this.parent = parentRule;
 
@@ -54,7 +54,7 @@ var Rule = BaseClass.extend({
       return this.error("Cannot extend: '"+otherName+"' invalid type");
 
     this.userObj = Utils.create(parentRule.userObj);
-    this.userObj._super = parentRule.userObj;
+    this.userObj.parent = parentRule.userObj;
   },
 
   buildFn: function() {

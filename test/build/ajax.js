@@ -1,6 +1,5 @@
 describe("Ajax validations", function() {
   var form, html;
-
   form = null;
   html = "<div data-demo>\n  <form>\n    <input name=\"field\" value=\"abc\" data-validate=\"testAjax\">\n    <input class=\"submit\" type=\"submit\"/>\n  </form>\n</div>";
   $.verify.addFieldRules({

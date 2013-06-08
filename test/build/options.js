@@ -1,6 +1,5 @@
 describe("Options", function() {
   var form1, form2, html;
-
   form1 = null;
   form2 = null;
   html = "<div data-demo>\n  <form id=\"form1\"></form>\n  <form id=\"form2\"></form>\n</div>";
