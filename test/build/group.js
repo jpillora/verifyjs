@@ -1,5 +1,6 @@
 describe("Group validations (Ajax)", function() {
   var $ajax, form, html, stubAjax, unstubAjax;
+
   form = null;
   html = "<div data-demo>\n  <form>\n    <input name=\"f1\" value=\"abc\" data-validate=\"testGroupAjax#1\">\n    <input name=\"f2\" value=\"def\" data-validate=\"testGroupAjax#2\">\n    <input name=\"f3\" value=\"xyz\">\n    <input class=\"submit\" type=\"submit\"/>\n  </form>\n</div>";
   $ajax = $.ajax;
@@ -27,6 +28,7 @@ describe("Group validations (Ajax)", function() {
   });
   beforeEach(function() {
     var runCount;
+
     $('#fixtures').html(html);
     runCount = 0;
     form = $("form");
@@ -39,6 +41,7 @@ describe("Group validations (Ajax)", function() {
   describe("Group validations (Ajax) - When submitted", function() {
     return it("should be valid", function(done) {
       var input;
+
       input = $("input").first();
       return input.validate(function(result) {
         expect(result).to.be["false"];
@@ -54,6 +57,7 @@ describe("Group validations (Ajax)", function() {
 
 describe("Group validations (Simple)", function() {
   var form, html, runCount;
+
   runCount = 0;
   form = null;
   html = "<div data-demo>\n  <form>\n    <input name=\"f1\" value=\"abc\" data-validate=\"testGroup#1\">\n    <input name=\"f2\" value=\"def\" data-validate=\"testGroup#2\">\n    <input name=\"f3\" value=\"xyz\">\n    <input class=\"submit\" type=\"submit\"/>\n  </form>\n</div>";
@@ -80,6 +84,7 @@ describe("Group validations (Simple)", function() {
   describe("Group validations (Simple) - Group count", function() {
     return it("should have 1 group", function() {
       var obj;
+
       obj = form.data("verify");
       expect(_.size(obj.groups)).to.equal(1);
       return expect(obj.groups.testGroup).to.exist;

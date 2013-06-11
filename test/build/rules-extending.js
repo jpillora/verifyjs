@@ -1,5 +1,6 @@
 describe("Extending validation rules", function() {
   var form, html;
+
   form = null;
   html = "<div data-demo>\n  <form>\n    <input name=\"field1\" value=\"abc\" data-validate=\"validator1\">\n    <input name=\"field2\" value=\"efg\" data-validate=\"validator2\">\n    <input name=\"field3\" value=\"def\">\n    <input class=\"submit\" type=\"submit\"/>\n  </form>\n</div>";
   $.verify.addFieldRules({
@@ -20,6 +21,7 @@ describe("Extending validation rules", function() {
       extend: "validator2",
       fn: function(r) {
         var myVar2x;
+
         myVar2x = r.myVar + r.myVar;
         if (r.val() !== myVar2x) {
           return "Must equal '" + myVar2x + "' (double)";
