@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/06/11
+/** Verify.js - v0.0.1 - 2013/06/12
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -7,7 +7,7 @@
 (function(window,document,undefined) {
 'use strict';
 
-var Notification, addStyle, coreStyle, createElem, defaults, getAnchorElement, globalAnchors, hAligns, incr, inherit, insertCSS, mainPositions, opposites, parsePosition, pluginClassName, pluginName, pluginOptions, positions, realign, stylePrefixes, styles, vAligns,
+var Notification, addStyle, coreStyle, createElem, defaults, getAnchorElement, getStyle, globalAnchors, hAligns, incr, inherit, insertCSS, mainPositions, opposites, parsePosition, pluginClassName, pluginName, pluginOptions, positions, realign, stylePrefixes, styles, vAligns,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 pluginName = 'notify';
@@ -63,8 +63,18 @@ stylePrefixes = {
   "border-radius": ["-webkit-", "-moz-"]
 };
 
+getStyle = function(name) {
+  return styles[name];
+};
+
 addStyle = function(name, def) {
   var cssText, _ref;
+  if (!name) {
+    throw "Missing Style name";
+  }
+  if (!def) {
+    throw "Missing Style definition";
+  }
   if ((_ref = styles[name]) != null ? _ref.cssElem : void 0) {
     if (window.console) {
       console.warn("" + pluginName + ": overwriting style '" + name + "'");
@@ -101,6 +111,7 @@ addStyle = function(name, def) {
 insertCSS = function(cssText) {
   var elem;
   elem = createElem("style");
+  elem.attr('type', 'text/css');
   $("head").append(elem);
   try {
     elem.html(cssText);
@@ -111,6 +122,7 @@ insertCSS = function(cssText) {
 };
 
 pluginOptions = {
+  clickToHide: true,
   autoHide: true,
   autoHideDelay: 5000,
   arrowShow: true,
@@ -468,21 +480,18 @@ $.fn[pluginName] = function(data, options) {
 $.extend($[pluginName], {
   defaults: defaults,
   addStyle: addStyle,
-  pluginOptions: pluginOptions
+  pluginOptions: pluginOptions,
+  getStyle: getStyle,
+  insertCSS: insertCSS
 });
 
 $(function() {
-  insertCSS(coreStyle.css).attr('data-notify-style', 'core');
-  return $(document).on('click', "." + pluginClassName + "-wrapper", function() {
+  insertCSS(coreStyle.css).attr('id', 'core-notify');
+  return $(document).on('click notify-hide', "." + pluginClassName + "-wrapper", function(e) {
     var inst;
     inst = $(this).data(pluginClassName);
-    if (!inst) {
-      return;
-    }
-    if (inst.elem) {
+    if (inst && (inst.options.clickToHide || e.type === 'notify-hide')) {
       return inst.show(false);
-    } else {
-      return inst.destroy();
     }
   });
 });
