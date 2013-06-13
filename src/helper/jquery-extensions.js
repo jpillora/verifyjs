@@ -27,7 +27,7 @@ $.fn.verifyScrollTo = function( target, options, callback ){
   });
 };
 
-$.fn.equals = function(that) {
+$.fn.verifyEquals = function(that) {
   if($(this).length !== that.length)
     return false;
   for(var i=0,l=$(this).length;i<l;++i)

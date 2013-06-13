@@ -44,8 +44,8 @@ var ValidationForm = null;
       else if( that instanceof ValidationElement && that.domElem )
         e2 = that.domElem;
 
-      if(e1 && e2)
-        return e1.equals(e2);
+      if(e1.verifyEquals && e2.verifyEquals)
+        return e1.verifyEquals(e2);
 
       return false;
     }

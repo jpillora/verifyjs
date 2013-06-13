@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/06/12
+/** Verify.js - v0.0.1 - 2013/06/13
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -181,7 +181,7 @@ $.fn.verifyScrollTo = function( target, options, callback ){
   });
 };
 
-$.fn.equals = function(that) {
+$.fn.verifyEquals = function(that) {
   if($(this).length !== that.length)
     return false;
   for(var i=0,l=$(this).length;i<l;++i)
@@ -305,7 +305,7 @@ var Set = Class.extend({
   remove: function(item) {
     var newSet = [];
     for(var i = 0, l = this.array.length; i<l; ++i)
-      if(!this.equals(this.get(i),item))
+      if(!this.verifyEquals(this.get(i),item))
         newSet.push(this.get(i));
 
     this.array = newSet;
@@ -315,8 +315,10 @@ var Set = Class.extend({
     this.array = [];
   },
   equals: function(i1, i2) {
-    if(i1 && i2 && i1.equals !== undefined && i2.equals !== undefined)
-      return i1.equals(i2);
+    if(i1 && i2 &&
+       i1.verifyEquals !== undefined &&
+       i2.verifyEquals !== undefined)
+      return i1.verifyEquals(i2);
     else
       return i1 === i2;
   },
@@ -899,8 +901,8 @@ var ValidationForm = null;
       else if( that instanceof ValidationElement && that.domElem )
         e2 = that.domElem;
 
-      if(e1 && e2)
-        return e1.equals(e2);
+      if(e1.verifyEquals && e2.verifyEquals)
+        return e1.verifyEquals(e2);
 
       return false;
     }

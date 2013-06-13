@@ -51,30 +51,6 @@ var Utils = {
     };
   },
 
-  dateToString: function(date) {
-    return date.getFullYear()+"-"+(date.getMonth()+1)+"-"+date.getDate();
-  },
-
-  parseDate: function(dateStr) {
-    //format check
-    var m = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if(!m) return null;
-
-    var date;
-    //parse with jquery ui's date picker
-    if($.datepicker !== undefined) {
-      try {
-        var epoch = $.datepicker.parseDate("dd/mm/yy", dateStr);
-        date = new Date(epoch);
-      } catch(e) { return null; }
-    //simple regex parse
-    } else {
-      date = new Date(parseInt(m[3], 10),parseInt(m[2], 10)-1,parseInt(m[1], 10));
-    }
-
-    return date;
-  },
-
   /**
    * returns true if we are in a RTLed document
    * @param {jqObject} field
