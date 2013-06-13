@@ -1,6 +1,4 @@
-
 (function($) {
-
   $.verify.addFieldRules({
     date: {
       fn: function(r) {
@@ -56,5 +54,4 @@
       return true;
     }
   });
-
 })(jQuery);

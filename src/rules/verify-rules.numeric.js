@@ -1,11 +1,4 @@
-
 (function($) {
-
-  if(!$.verify || !$.verify.addRules) {
-    window.alert("Please include verify.js before each rule file");
-    return;
-  }
-
   $.verify.addFieldRules({
 
     currency: {
@@ -55,5 +48,4 @@
     }
 
   });
-
 })(jQuery);
