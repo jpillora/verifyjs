@@ -1,16 +1,25 @@
 (function($) {
   $.verify.addFieldRules({
+    /**
+     * Ensures an australian postcode  
+     * @name postcode
+     * @type field
+     */
     postcode: {
       regex: /^\d{4}$/,
       message: "Invalid postcode"
     },
-
+    /**
+     * Ensures an australian phone number  
+     * @name phone
+     * @type field
+     */
     phone: function(r) {
       r.val(r.val().replace(/\D/g,''));
       var v = r.val();
       if(!v.match(/^\+?[\d\s]+$/))
         return "Use digits and spaces only";
-      if(v.match(/^\+/))
+      if(v.match(/^\+\d+$/))
         return true; //allow all international
       if(!v.match(/^0/))
         return "Number must start with 0";
@@ -18,5 +27,7 @@
         return "Must be 10 digits long";
       return true;
     }
+    /**
+     */
   });
 })(jQuery);

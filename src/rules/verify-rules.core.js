@@ -1,21 +1,47 @@
 (function($) {
   $.verify.addFieldRules({
+    /**
+     * Ensures a valid email address
+     * @name email
+     * @type field
+     */
     email: {
       regex: /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()\[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
       message: "Invalid email address"
     },
+    /**
+     * Ensures a valid URL
+     * @name url
+     * @type field
+     */
     url: {
       regex: /^https?:\/\/[\-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[\-A-Za-z0-9+&@#\/%=~_|]/,
       message: "Invalid URL"
     },
+    /**
+     * Ensures only alphanumeric characters are used
+     * @name alphanumeric
+     * @type field
+     */
     alphanumeric: {
       regex: /^[0-9A-Za-z]+$/,
       message: "Use digits and letters only"
     },
+    /**
+     * Ensures only numbers are used
+     * @name number
+     * @type field
+     */
     number: {
       regex: /^\d+$/,
       message: "Use digits only"
     },
+
+    /**
+     * Ensures the field has filled in
+     * @name required
+     * @type field
+     */
     required: {
 
       fn: function(r) {
@@ -57,6 +83,13 @@
         "single": "This checkbox is required"
       }
     },
+    /**
+     * Ensures the field matches the provided regular expression
+     * @name regex
+     * @param {String} regex The regular expression
+     * @param {String} message The error message displayed
+     * @type field
+     */
     regex: {
       fn: function(r) {
         var re;
@@ -74,10 +107,45 @@
       },
       message: "Invalid format"
     },
-    //an alias
+    /**
+     * An alias to 'regex'
+     * @name pattern
+     * @type field
+     */
     pattern: {
       extend: 'regex'
     },
+    /**
+     * Ensures the number of characters is at least a given length  
+     * @name min
+     * @param {Integer} min An integer representing the minimum number of characters
+     * @type field
+     */
+    min: function(r) {
+      var v = r.val(), min = parseInt(r.args[0], 10);
+      if(v.length < min)
+        return "Must be at least " + min + " characters";
+      return true;
+    },
+    /**
+     * Ensures the number of characters is at most a given length  
+     * @name max
+     * @param {Integer} max An integer representing the maximum number of characters
+     * @type field
+     */
+    max: function(r) {
+      var v = r.val(), max = parseInt(r.args[0], 10);
+      if(v.length > max)
+        return "Must be at most " + max + " characters";
+      return true;
+    },
+    /**
+     * Ensures the number of characters is a inside a given length range
+     * @name size
+     * @param {String} min An integer representing the minimum number of characters
+     * @param {String} max An integer representing the maximum number of characters (Defaults to 'min' resulting in exact length)
+     * @type field
+     */
     size: function(r){
       var v = r.val(), exactOrLower = r.args[0], upper = r.args[1];
       if(exactOrLower !== undefined && upper === undefined) {
@@ -94,51 +162,9 @@
       }
 
       return true;
-    },
-    min: function(r) {
-      var v = r.val(), min = parseInt(r.args[0], 10);
-      if(v.length < min)
-        return "Must be at least " + min + " characters";
-      return true;
-    },
-    max: function(r) {
-      var v = r.val(), max = parseInt(r.args[0], 10);
-      if(v.length > max)
-        return "Must be at most " + max + " characters";
-      return true;
     }
-
-  });
-
-  // Group validation rules
-  $.verify.addGroupRules({
-
-    requiredAll: {
-      extend: 'required',
-      fn: function(r) {
-
-        var size = r.fields().length,
-            message,
-            passes = [], fails = [];
-
-        r.fields().each(function(i, field) {
-          message = r.requiredField(r, field);
-          if(message === true)
-            passes.push(field);
-          else
-            fails.push({ field: field, message:message });
-        });
-
-        if(passes.length > 0 && fails.length > 0) {
-          $.each(fails, function(i, f) {
-            r.prompt(f.field, f.message);
-          });
-          return false;
-        }
-
-        return true;
-      }
-    }
+    /**
+     */
 
   });
 

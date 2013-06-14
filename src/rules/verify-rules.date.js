@@ -1,7 +1,19 @@
 (function($) {
+
+  var DEFAULT_FORMAT = 'YYYY-MM-DD';
+
   $.verify.addFieldRules({
+    /**
+     * Ensures a valid date
+     * @name date
+     * @param {String} format The expected string format (defaults to 'YYYY-MM-DD')
+     * @type field
+     */
     date: {
       fn: function(r) {
+
+        var format = r.args[0] || DEFAULT_FORMAT;
+        //TODO
         if($.verify.utils.parseDate(r.val()))
           return true;
         return r.message;

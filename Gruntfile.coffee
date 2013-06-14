@@ -1,7 +1,6 @@
 fs = require("fs")
 fetchUrl = require("fetch").fetchUrl
 
-#global module:false
 module.exports = (grunt) ->
 
   #build plugins
@@ -37,7 +36,8 @@ module.exports = (grunt) ->
     "src/vendor/jquery.console.js"
     "src/helper/*.js"
     "src/modules/*.js"
-    "src/<%= pkg.name %>.rules.js"
+    "src/rules/verify-rules.core.js"
+    "src/rules/verify-rules.numeric.js"
   ]
   # Project configuration.
   grunt.initConfig
@@ -49,7 +49,7 @@ module.exports = (grunt) ->
       " */\n"
     webget:
       notify:
-        src: "https://raw.github.com/jpillora/notifyjs/master/dist/notify-combined.js"
+        src: "http://notifyjs.com/dist/notify-combined.js"
         dest: "src/vendor/notify.js"
 
       console:
