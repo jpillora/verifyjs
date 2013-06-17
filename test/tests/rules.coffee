@@ -1,23 +1,12 @@
-#=require ./index
-
 #BASIC TESTS
 describe "Validation rules", ->
 
   form = null
+  field = null
   html = """
     <div data-demo>
       <form>
-        <input id='required' data-validate='required'>
-        <input id='number' data-validate='number'>
-
-        <input id='phone' data-validate='phone'>
-        <input id='currency' data-validate='currency'>
-
-        <input name='multiRequired' id='multiRequired' data-validate='required,number'>
-        <input name='multiOptional' id='multiOptional' data-validate='phone,number'>
-
-        <input name='minMax' id='minMax' data-validate='min(3),max(5)'/>
-
+        <input id='field' data-validate=''>
         <input class='submit' type='submit'/>
       </form>
     </div>
@@ -26,93 +15,46 @@ describe "Validation rules", ->
   beforeEach ->
     $('#fixtures').html html
     form = $("form")
+    field = $("#field")
     form.verify(skipHiddenFields: false)
 
   afterEach ->
     form.verify(false)
 
-  describe "number", ->
-    it "should be a number", (done) ->
-      $('#number').val('X').validate (result) ->
-        expect(result).to.be.false
-        done()
+  #create tests
+  _.each MANIFEST, (obj) ->
+    describe "rule set #{obj.namespace}", ->
+      _.each obj.rules, (rule) ->
+        console.log "creating tests for #{rule.name}"
+        describe "rule #{rule.name}", ->
+          #tests
+          _.each ['valids','invalids'], (type) ->
 
-    it "should be valid", (done) ->
-      $('#number').val('42').validate (result) ->
-        expect(result).to.be.true
-        done()
+            t = type.substr(0,type.length-1)
 
-  describe "required", ->
-    it "should be required", (done) ->
-      $('#required').validate (result) ->
-        expect(result).to.be.false
-        done()
+            _.each rule.tests[type], (testcase) ->
+              m = testcase.match ///
+                ^
+                (
+                \(
+                ([^\)]+)
+                \)
+                )?
+                (.*)$
+              ///
+              unless m
+                console.warn "invalid testcase #{testcase}"
+                return
 
-    it "should be valid", (done) ->
-      $('#required').val('X').validate (result) ->
-        expect(result).to.be.true
-        done()
+              params = m[2]
+              value = m[3]
 
-  describe "phone (aus)", ->
+              console.log "creating #{t} test case: (#{params}) = #{value}"
 
-    it "should start with 0", (done) ->
-      $('#phone').val('1299998888').validate (result) ->
-        expect(result).to.be.false
-        done()
-
-    it "should be 10 chars", (done) ->
-      $('#phone').val('099998888').validate (result) ->
-        expect(result).to.be.false
-        done()
-
-    it "should be valid", (done) ->
-      $('#phone').val('0299998888').validate (result) ->
-        expect(result).to.be.true
-        done()
-
-
-  describe "multiple", ->
-
-    it "should be invalid (required)", (done) ->
-      $('#multiRequired').validate (result) ->
-        expect(result).to.be.false
-        done()
-
-    it "should be invalid (number)", (done) ->
-      $('#multiRequired').val('hello').validate (result) ->
-        expect(result).to.be.false
-        done()
-
-    it "should be valid", (done) ->
-      $('#multiRequired').val('42').validate (result) ->
-        expect(result).to.be.true
-        done()
-
-    it "should be invalid (NOT required but is word)", (done) ->
-      $('#multiOptional').val('hello').validate (result) ->
-        expect(result).to.be.false
-        done()
-
-    # it "should be valid (NOT required)", (done) ->
-    #   form.verify skipNotRequired: true
-    #   $('#multiOptional').validate (result) ->
-    #     expect(result).to.be.true
-    #     done()
-
-  describe "min-max chars", ->
-
-    it "should be invalid (min)", (done) ->
-      $('#minMax').val('aa').validate (result) ->
-        expect(result).to.be.false
-        done()
-
-    it "should be invalid (max)", (done) ->
-      $('#minMax').val('aaaaaa').validate (result) ->
-        expect(result).to.be.false
-        done()
-
-    it "should be valid", (done) ->
-      $('#minMax').val('aaaa').validate (result) ->
-        expect(result).to.be.true
-        done()
+              it "'#{value}' should be #{t}", (done) ->
+                field.attr('data-validate', "#{rule.name}(#{params})")
+                field.val(value)
+                field.validate (result) ->
+                  expect(result).to.equal t is 'valid'
+                  done()
 

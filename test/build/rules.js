@@ -1,11 +1,13 @@
 describe("Validation rules", function() {
-  var form, html;
+  var field, form, html;
 
   form = null;
-  html = "<div data-demo>\n  <form>\n    <input id='required' data-validate='required'>\n    <input id='number' data-validate='number'>\n\n    <input id='phone' data-validate='phone'>\n    <input id='currency' data-validate='currency'>\n\n    <input name='multiRequired' id='multiRequired' data-validate='required,number'>\n    <input name='multiOptional' id='multiOptional' data-validate='phone,number'>\n\n    <input name='minMax' id='minMax' data-validate='min(3),max(5)'/>\n\n    <input class='submit' type='submit'/>\n  </form>\n</div>";
+  field = null;
+  html = "<div data-demo>\n  <form>\n    <input id='field' data-validate=''>\n    <input class='submit' type='submit'/>\n  </form>\n</div>";
   beforeEach(function() {
     $('#fixtures').html(html);
     form = $("form");
+    field = $("#field");
     return form.verify({
       skipHiddenFields: false
     });
@@ -13,97 +15,37 @@ describe("Validation rules", function() {
   afterEach(function() {
     return form.verify(false);
   });
-  describe("number", function() {
-    it("should be a number", function(done) {
-      return $('#number').val('X').validate(function(result) {
-        expect(result).to.be["false"];
-        return done();
-      });
-    });
-    return it("should be valid", function(done) {
-      return $('#number').val('42').validate(function(result) {
-        expect(result).to.be["true"];
-        return done();
-      });
-    });
-  });
-  describe("required", function() {
-    it("should be required", function(done) {
-      return $('#required').validate(function(result) {
-        expect(result).to.be["false"];
-        return done();
-      });
-    });
-    return it("should be valid", function(done) {
-      return $('#required').val('X').validate(function(result) {
-        expect(result).to.be["true"];
-        return done();
-      });
-    });
-  });
-  describe("phone (aus)", function() {
-    it("should start with 0", function(done) {
-      return $('#phone').val('1299998888').validate(function(result) {
-        expect(result).to.be["false"];
-        return done();
-      });
-    });
-    it("should be 10 chars", function(done) {
-      return $('#phone').val('099998888').validate(function(result) {
-        expect(result).to.be["false"];
-        return done();
-      });
-    });
-    return it("should be valid", function(done) {
-      return $('#phone').val('0299998888').validate(function(result) {
-        expect(result).to.be["true"];
-        return done();
-      });
-    });
-  });
-  describe("multiple", function() {
-    it("should be invalid (required)", function(done) {
-      return $('#multiRequired').validate(function(result) {
-        expect(result).to.be["false"];
-        return done();
-      });
-    });
-    it("should be invalid (number)", function(done) {
-      return $('#multiRequired').val('hello').validate(function(result) {
-        expect(result).to.be["false"];
-        return done();
-      });
-    });
-    it("should be valid", function(done) {
-      return $('#multiRequired').val('42').validate(function(result) {
-        expect(result).to.be["true"];
-        return done();
-      });
-    });
-    return it("should be invalid (NOT required but is word)", function(done) {
-      return $('#multiOptional').val('hello').validate(function(result) {
-        expect(result).to.be["false"];
-        return done();
-      });
-    });
-  });
-  return describe("min-max chars", function() {
-    it("should be invalid (min)", function(done) {
-      return $('#minMax').val('aa').validate(function(result) {
-        expect(result).to.be["false"];
-        return done();
-      });
-    });
-    it("should be invalid (max)", function(done) {
-      return $('#minMax').val('aaaaaa').validate(function(result) {
-        expect(result).to.be["false"];
-        return done();
-      });
-    });
-    return it("should be valid", function(done) {
-      return $('#minMax').val('aaaa').validate(function(result) {
-        expect(result).to.be["true"];
-        return done();
+  return _.each(MANIFEST, function(obj) {
+    return describe("rule set " + obj.namespace, function() {
+      return _.each(obj.rules, function(rule) {
+        console.log("creating tests for " + rule.name);
+        return describe("rule " + rule.name, function() {
+          return _.each(['valids', 'invalids'], function(type) {
+            var t;
+
+            t = type.substr(0, type.length - 1);
+            return _.each(rule.tests[type], function(testcase) {
+              var m, params, value;
+
+              m = testcase.match(/^(\(([^\)]+)\))?(.*)$/);
+              if (!m) {
+                console.warn("invalid testcase " + testcase);
+                return;
+              }
+              params = m[2];
+              value = m[3];
+              console.log("creating " + t + " test case: (" + params + ") = " + value);
+              return it("'" + value + "' should be " + t, function(done) {
+                field.attr('data-validate', "" + rule.name + "(" + params + ")");
+                field.val(value);
+                return field.validate(function(result) {
+                  expect(result).to.equal(t === 'valid');
+                  return done();
+                });
+              });
+            });
+          });
+        });
       });
     });
   });

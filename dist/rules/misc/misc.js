@@ -1,4 +1,8 @@
-(function($) {
+/**
+ * Miscellaneous Validation Rules
+ * @author Jaime Pillora
+ */
+ (function($) {
   $.verify.addFieldRules({
     agreement: function(r){
       if(!r.field.is(":checked"))

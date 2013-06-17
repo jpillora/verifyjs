@@ -1,5 +1,3 @@
-#=require ./index
-
 #BASIC TESTS
 describe "Group validations (Ajax)", ->
 

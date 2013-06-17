@@ -1,9 +1,17 @@
+/**
+ * Core Validation Rules
+ * @author Jaime Pillora
+ */
 (function($) {
   $.verify.addFieldRules({
     /**
      * Ensures a valid email address
      * @name email
      * @type field
+     * 
+     * @valid dev@jpillora.com
+     * @invalid devjpillora.com
+     * @invalid dev@jpillora.c
      */
     email: {
       regex: /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()\[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
@@ -13,6 +21,10 @@
      * Ensures a valid URL
      * @name url
      * @type field
+     *
+     * @valid http://jpillora.com
+     * @invalid jpillora.com
+     * @invalid http://jpilloracom
      */
     url: {
       regex: /^https?:\/\/[\-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[\-A-Za-z0-9+&@#\/%=~_|]/,
@@ -22,6 +34,9 @@
      * Ensures only alphanumeric characters are used
      * @name alphanumeric
      * @type field
+     *
+     * @valid abc123ABC
+     * @invalid abc!123ABC
      */
     alphanumeric: {
       regex: /^[0-9A-Za-z]+$/,
@@ -31,16 +46,21 @@
      * Ensures only numbers are used
      * @name number
      * @type field
+     *
+     * @valid 123
+     * @invalid 123abc
      */
     number: {
       regex: /^\d+$/,
       message: "Use digits only"
     },
-
     /**
      * Ensures the field has filled in
      * @name required
      * @type field
+     *
+     * @valid abc
+     * @invalid 
      */
     required: {
 
@@ -87,8 +107,12 @@
      * Ensures the field matches the provided regular expression
      * @name regex
      * @param {String} regex The regular expression
-     * @param {String} message The error message displayed
+     * @param {String} message The error message displayed (default: 'Invalid Format')
      * @type field
+     * 
+     * @valid (bcde) abcdef
+     * @valid ($abc) abcdef
+     * @invalid ($cde) abcdef
      */
     regex: {
       fn: function(r) {
@@ -120,48 +144,77 @@
      * @name min
      * @param {Integer} min An integer representing the minimum number of characters
      * @type field
+     *
+     * @valid (5) aaaaa
+     * @valid (3) aaaaa
+     * @invalid (5) aaa
      */
-    min: function(r) {
-      var v = r.val(), min = parseInt(r.args[0], 10);
-      if(v.length < min)
-        return "Must be at least " + min + " characters";
-      return true;
+    min: {
+      fn:function(r) {
+        var v = r.val();
+        r.min = parseInt(r.args[0], 10);
+        if(v.length < r.min)
+          return r.message;
+        return true;
+      },
+      message: "Must be at least {{ min }} characters"
     },
     /**
      * Ensures the number of characters is at most a given length  
      * @name max
      * @param {Integer} max An integer representing the maximum number of characters
      * @type field
+     *
+     * @valid (5) aaaaa
+     * @valid (3) aaa
+     * @invalid (3) aaaaa
      */
-    max: function(r) {
-      var v = r.val(), max = parseInt(r.args[0], 10);
-      if(v.length > max)
-        return "Must be at most " + max + " characters";
-      return true;
+    max: {
+      fn: function(r) {
+        var v = r.val();
+        r.max = parseInt(r.args[0], 10);
+        if(v.length > r.max)
+          return r.message;
+        return true;
+      },
+      message: "Must be at most {{ max }} characters"
     },
     /**
      * Ensures the number of characters is a inside a given length range
      * @name size
      * @param {String} min An integer representing the minimum number of characters
-     * @param {String} max An integer representing the maximum number of characters (Defaults to 'min' resulting in exact length)
+     * @param {String} max An integer representing the maximum number of characters (default: min)
      * @type field
+     *
+     * @valid (5) aaaaa
+     * @valid (3) aaa
+     * @valid (3,5) aaaa
+     * @invalid (3,5) aaaaaaaa
+     * @invalid (3,5) 
      */
-    size: function(r){
-      var v = r.val(), exactOrLower = r.args[0], upper = r.args[1];
-      if(exactOrLower !== undefined && upper === undefined) {
-        var exact = parseInt(exactOrLower, 10);
-        if(r.val().length !== exact)
-          return  "Must be "+exact+" characters";
-      } else if(exactOrLower !== undefined && upper !== undefined) {
-        var lower = parseInt(exactOrLower, 10);
-        upper = parseInt(upper, 10);
-        if(v.length < lower || upper < v.length)
-          return "Must be between "+lower+" and "+upper+" characters";
-      } else {
-        r.warn("size validator parameter error on field: " + r.field.attr('name'));
-      }
+    size: {
+      fn: function(r){
+        var len = r.val().length;
+        r.min = parseInt(r.args[0], 10);
+        r.max = parseInt(r.args[1], 10) || r.min;
 
-      return true;
+        if(!r.min){
+          r.warn("Invalid argument: #{r.args[0]}");
+          return true;
+        }
+
+        if(len < r.min || r.max > len)
+          if(r.min === r.max)
+            return r.messages.exact;
+          else
+            return r.messages.range;
+
+        return true;
+      },
+      messages: {
+        range: "Must be between {{ min }} and {{ max }} characters",
+        exact: "Must be {{ min }} characters"
+      }
     }
     /**
      */

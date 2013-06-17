@@ -1,25 +1,4 @@
-
-<html>
-  <head>
-    <title>Mocha - jQuery Validation Engine Tests</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
-    <!-- libs -->
-    <script type="text/javascript" src="../../test/lib/chai.js"></script>
-    <script type="text/javascript" src="../../test/lib/coffee-script.min.js"></script>
-    <script type="text/javascript" src="../../test/lib/jquery.js"></script>
-    <link rel="stylesheet" href="../../test/lib/mocha.css"/>
-    <script type="text/javascript" src="../../test/lib/mocha.js"></script>
-    <script type="text/javascript" src="../../test/lib/underscore.js"></script>
-
-    <!-- setup mocha (adds BDD methods) -->
-    <script type="text/javascript">mocha.setup('bdd');</script>
-
-    <!-- verifyjs -->
-    <script type="text/javascript" src="../../dist/verify.js"></script>
-    <!-- rule manifest -->
-    <script type="text/javascript">
-      var MANIFEST = [
+[
   {
     "namespace": "aus",
     "rules": [
@@ -365,48 +344,4 @@
     ],
     "langs": []
   }
-];
-    </script>
-    <!-- all rules -->
-    <script type="text/javascript" src="../../dist/rules/aus/aus.js"></script>
-    <script type="text/javascript" src="../../dist/rules/core/core.js"></script>
-    <script type="text/javascript" src="../../dist/rules/date/date.js"></script>
-    <script type="text/javascript" src="../../dist/rules/misc/misc.js"></script>
-    <script type="text/javascript" src="../../dist/rules/numeric/numeric.js"></script>
-
-
-    <!-- tests -->
-    <script type="text/javascript" src="../../test/build/ajax.js"></script>
-    <script type="text/javascript" src="../../test/build/basic.js"></script>
-    <script type="text/javascript" src="../../test/build/group.js"></script>
-    <script type="text/javascript" src="../../test/build/options.js"></script>
-    <script type="text/javascript" src="../../test/build/rules-extending.js"></script>
-    <script type="text/javascript" src="../../test/build/rules-group.js"></script>
-    <script type="text/javascript" src="../../test/build/rules.js"></script>
-
-
-    <script type="text/javascript">
-      afterEach(function() {
-        $("#fixtures").empty();
-      })
-
-      var expect = chai.expect;
-      var should = chai.should();
-      var assert = function(expr, msg) {
-        if (!expr) throw new Error(msg || 'failed');
-      }
-
-      if (navigator.userAgent.indexOf('PhantomJS') === -1)
-        $(function() {
-          mocha.run(function() {
-            if(window['console']) console.warn(arguments);
-          });
-        });
-    </script>
-
-  </head>
-  <body>
-    <div id="mocha"></div>
-    <div id="fixtures"></div>
-  </body>
-</html>
+]

@@ -1,9 +1,30 @@
+/**
+ * Numeric Validation Rules
+ * @author Jaime Pillora
+ */
 (function($) {
   $.verify.addFieldRules({
 
+    /**
+     * Ensures valid currency
+     * @name currency
+     * @type field
+     */
     currency: {
-      regex: /^\-?\$?\d{1,2}(,?\d{3})*(\.\d+)?$/,
-      message: "Invalid monetary value"
+      fn: function(r) {
+        if(r.args[0]) r.symbol = r.args[0];
+        if(!/^\-?(.)\d{1,2}(,?\d{3})*(\.\d+)?$/.test(r.val()))
+          return r.message.invalidValue;
+        if(!RegExp.$1 || RegExp.$1 !== r.symbol)
+          return r.message.invalidCurrency;
+
+        return true;
+      },
+      symbol: '$',
+      message: {
+        invalidValue: "Invalid monetary value",
+        invalidCurrency: "Invalid Currency {{ symbol }}"
+      }
     },
     decimal: function(r) {
       var vStr = r.val(),

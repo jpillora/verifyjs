@@ -1,5 +1,3 @@
-#=require ./index
-
 #EXTENDING TESTS
 describe "Extending validation rules", ->
 

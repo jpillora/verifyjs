@@ -1,5 +1,3 @@
-#=require ./index
-
 #AJAX TESTS
 describe "Ajax validations", ->
 

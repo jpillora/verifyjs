@@ -3,29 +3,31 @@
   <head>
     <title>Mocha - jQuery Validation Engine Tests</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-    <%
-      function render(f, base) {
+    <%function render(f) {
         var m = f.match(/\.(\w+)$/);
         if(!m) return '';
-        var url = base + '/' + f;
         if(m[1] === 'js')
-          return '<script type="text/javascript" src="' + url +'"></script>\n';
+          return '<script type="text/javascript" src="../../' + f +'"></script>\n';
         if(m[1] === 'css')
-          return '<link rel="stylesheet" href="' + url +'"/>\n';
+          return '<link rel="stylesheet" href="../../' + f +'"/>\n';
         return '';
-      }
-    %>
+      }%>
     <!-- libs -->
-    <% libs.forEach(function(l) {  %><%- render(l, '../lib') %><% }); %>
+    <%- expand('test/lib/*').map(render).join('    ') %>
     <!-- setup mocha (adds BDD methods) -->
     <script type="text/javascript">mocha.setup('bdd');</script>
 
-    <!-- plugin -->
+    <!-- verifyjs -->
     <script type="text/javascript" src="../../dist/verify.js"></script>
+    <!-- rule manifest -->
+    <script type="text/javascript">
+      var MANIFEST = <%- read('dist/rules/manifest.json') %>;
+    </script>
+    <!-- all rules -->
+    <%- expand('dist/rules/*/*.js').map(render).join('    ') %>
 
     <!-- tests -->
-    <% tests.forEach(function(t) { %><%- render(t, '.')       %><% }); %>
+    <%- expand('test/build/*.js').map(render).join('    ') %>
 
     <script type="text/javascript">
       afterEach(function() {
@@ -39,7 +41,11 @@
       }
 
       if (navigator.userAgent.indexOf('PhantomJS') === -1)
-        $(mocha.run);
+        $(function() {
+          mocha.run(function() {
+            if(window['console']) console.warn(arguments);
+          });
+        });
     </script>
 
   </head>

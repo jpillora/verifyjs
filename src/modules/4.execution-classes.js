@@ -162,6 +162,7 @@ var FormExecution = null,
     },
 
     executed: function() {
+
       this.status = STATUS.COMPLETE;
 
       this.log((this.success ? 'Passed' : 'Failed') + ": " + this.response);
@@ -183,11 +184,6 @@ var FormExecution = null,
       this.nextTick(this.d[fn], [response], 0);
       return this.d.promise();
     },
-    filterResponse: function(response) {
-      if(typeof response === 'string')
-        return response;
-      return null;
-    },
     restrictDeferred: function(d) {
       if(!d) d = $.Deferred();
       d.__reject = d.reject;
@@ -196,8 +192,12 @@ var FormExecution = null,
         console.error("Use execution.resolve|reject()");
       };
       return d;
+    },
+    filterResponse: function(response) {
+      if(typeof response === 'string')
+        return response;
+      return null;
     }
-
   });
 
   //set in plugin scope
@@ -383,6 +383,16 @@ var FormExecution = null,
         this.nextTick(this.callback, [response]);
 
       return this.d.promise();
+    },
+
+    templateResponse: function(string, name) {
+      return name;
+    },
+
+    filterResponse: function(response) {
+      if(typeof response === 'string')
+        return response.replace(/\{\{\s*(\w+)\s*\}\}/g, this.templateResponse);
+      return null;
     }
 
   });
@@ -484,16 +494,21 @@ var FormExecution = null,
     },
 
     filterResponse: function(response) {
-      if(!response || !this.members.length)
-        return this._super(response);
+      var str = null;
 
-      var isObj = $.isPlainObject(response),
-          isStr = (typeof response === 'string');
+      if(response && this.members.length) {
+        var isObj = $.isPlainObject(response),
+            isStr = (typeof response === 'string');
 
-      if(isStr && this === this.group.exec) return response;
-      if(isObj && response[this.id]) return response[this.id];
+        //string - only show on master execution
+        if(isStr && this === this.group.exec)
+          str = response;
+        //obj - show by id
+        else if(isObj && response[this.id])
+          str = response[this.id];
+      }
 
-      return null;
+      return this._super(str);
     }
 
   });

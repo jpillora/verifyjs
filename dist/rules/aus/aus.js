@@ -1,9 +1,16 @@
+/**
+ * Australian Validation Rules
+ * @author Jaime Pillora
+ */
 (function($) {
   $.verify.addFieldRules({
     /**
      * Ensures an australian postcode  
      * @name postcode
      * @type field
+     *
+     * @valid 2000
+     * @invalid 90210
      */
     postcode: {
       regex: /^\d{4}$/,
@@ -13,6 +20,13 @@
      * Ensures an australian phone number  
      * @name phone
      * @type field
+     *
+     * @valid (02) 9555-1234
+     * @valid 0411 123 456
+     * @valid +61 1234 5678 9
+     * @invalid 1234
+     * @invalid (20) 9555-1234
+     * @invalid xyz
      */
     phone: function(r) {
       r.val(r.val().replace(/\D/g,''));
@@ -27,7 +41,6 @@
         return "Must be 10 digits long";
       return true;
     }
-    /**
-     */
+    /** */
   });
 })(jQuery);

@@ -8,6 +8,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks "grunt-contrib-jshint"
   grunt.loadNpmTasks "grunt-contrib-watch"
   grunt.loadNpmTasks "grunt-contrib-uglify"
+  grunt.loadNpmTasks "grunt-contrib-copy"
   grunt.loadNpmTasks "grunt-wrap"
   #test plugins
   grunt.loadNpmTasks "grunt-mocha"
@@ -15,21 +16,8 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks "grunt-contrib-coffee"
   grunt.loadNpmTasks "grunt-templater"
 
-  # Fetcher task
-  grunt.registerMultiTask "webget", "Web get stuff.", ->
-    done = @async()
-    name = @target
-    src = @data.src
-    dest = @data.dest
-    grunt.log.writeln "Web Getting: '" + name + "'"
-    fetchUrl src, (error, meta, body) ->
-      if error
-        grunt.log.writeln "Error: '" + error + "'"
-        done false
-        return
-      grunt.log.writeln "Saved: '" + src + "' as '" + dest + "'"
-      fs.writeFileSync dest, body
-      done true
+  # Load local tasks
+  grunt.task.loadTasks './tasks'
 
   #file lists
   files = [
@@ -89,7 +77,7 @@ module.exports = (grunt) ->
 
     watch:
       default:
-        files: 'src/**/*.js'
+        files: ['src/**/*.js', 'src/rules/*/lang/*.js']
         tasks: 'default'
         options:
           interval: 5000
@@ -100,7 +88,13 @@ module.exports = (grunt) ->
           interval: 5000
 
     jshint:
-      all: ["src/*.js"]
+      build: [
+        "src/*.js"
+      ]
+      rules: [
+        "src/rules/*/*.js"
+        "src/rules/*/lang/*.js"
+      ]
 
       options:
         eqeqeq: true
@@ -116,12 +110,21 @@ module.exports = (grunt) ->
         globals:
           require: true
           jQuery: true
-          ParamParser: true
+          moment: true
           guid: true
           TypedSet: true
           Set: true
           Class: true
           console: true
+
+    copy:
+      rules:
+        files: [{
+          expand: true
+          cwd: 'src/'
+          src: 'rules/**/*.js'
+          dest: 'dist/'
+        }]
 
     #test tasks
     coffee:
@@ -145,8 +148,8 @@ module.exports = (grunt) ->
         src: 'test/runner.html.ejs',
         dest: 'test/build/runner.html',
         variables:
-          libs: fs.readdirSync 'test/lib/'
-          tests: fs.readdirSync 'test/build/'
+          expand: grunt.file.expand
+          read: grunt.file.read
 
     mocha:
       test:
@@ -155,6 +158,7 @@ module.exports = (grunt) ->
           run: true
 
   #task groups
-  grunt.registerTask "build", ["jshint","concat","wrap","uglify"]
+  grunt.registerTask "build", ["jshint:build","concat","wrap","uglify"]
+  grunt.registerTask "rules", ["jshint:rules","copy:rules"]
   grunt.registerTask "test", ["coffee:test","template:runner","connect","mocha:test"]
-  grunt.registerTask "default", ["build","test"]
+  grunt.registerTask "default", ["build","rules","test"]
