@@ -72,7 +72,7 @@ module.exports = (grunt) ->
       dist:
         src: ['dist/*.js']
         dest: '.'
-        wrapper: ["<%= banner %>\n(function(window,document,undefined) {\n","\n}(window,document));"]
+        wrapper: ["<%= banner %>\n(function(window,document,$,undefined) {\n","\n}(window,document,jQuery));"]
 
     uglify:
       options:

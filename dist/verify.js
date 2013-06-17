@@ -1,9 +1,9 @@
-/** Verify.js - v0.0.1 - 2013/06/12
+/** Verify.js - v0.0.1 - 2013/06/17
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
 
-(function(window,document,undefined) {
+(function(window,document,$,undefined) {
 (function($) {
 
   if(window.console === undefined)
@@ -2028,4 +2028,4 @@ log("plugin added.");
   });
 
 })(jQuery);
-}(window,document));
+}(window,document,jQuery));
