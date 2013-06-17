@@ -1,9 +1,6 @@
 /* ===================================== *
  * Utility class
  * ===================================== */
-
-
-
 var Utils = {
 
   //object create implementation
@@ -14,7 +11,7 @@ var Utils = {
   },
 
   //bind method
-  bind: $.proxy,
+  bind: jQuery.proxy,
 
   //check options - throws a warning if the option doesn't exist
   checkOptions: function(opts) {
@@ -62,9 +59,9 @@ var Utils = {
 
     var date;
     //parse with jquery ui's date picker
-    if($.datepicker !== undefined) {
+    if(jQuery.datepicker !== undefined) {
       try {
-        var epoch = $.datepicker.parseDate("dd/mm/yy", dateStr);
+        var epoch = jQuery.datepicker.parseDate("dd/mm/yy", dateStr);
         date = new Date(epoch);
       } catch(e) { return null; }
     //simple regex parse
@@ -80,8 +77,8 @@ var Utils = {
    * @param {jqObject} field
    */
   isRTL: function(field) {
-    var $document = $(document);
-    var $body = $('body');
+    var $document = jQuery(document);
+    var $body = jQuery('body');
     var rtl =
       (field && field.hasClass('rtl')) ||
       (field && (field.attr('dir') || '').toLowerCase()==='rtl') ||
