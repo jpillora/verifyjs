@@ -1,3 +1,4 @@
+(function($) {
 
 /* ===================================== *
  * jQuery Extensions
@@ -36,3 +37,4 @@ $.fn.equals = function(that) {
   return true;
 };
 
+})(jQuery);

@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/06/12
+/** Verify.js - v0.0.1 - 2013/06/17
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -693,6 +693,12 @@ var guid = function() {
 };
 guid.curr = 1;
 
+(function($) {
+
+/* ===================================== *
+ * jQuery Extensions
+ * ===================================== */
+
 $.fn.verifyScrollView = function(onComplete) {
   var field = $(this).first();
   if(field.length !== 1) return $(this);
@@ -726,6 +732,7 @@ $.fn.equals = function(that) {
   return true;
 };
 
+})(jQuery);
 
 // Inspired by base2 and Prototype
 
@@ -896,7 +903,7 @@ var Utils = {
   },
 
   //bind method
-  bind: $.proxy,
+  bind: jQuery.proxy,
 
   //check options - throws a warning if the option doesn't exist
   checkOptions: function(opts) {
@@ -944,9 +951,9 @@ var Utils = {
 
     var date;
     //parse with jquery ui's date picker
-    if($.datepicker !== undefined) {
+    if(jQuery.datepicker !== undefined) {
       try {
-        var epoch = $.datepicker.parseDate("dd/mm/yy", dateStr);
+        var epoch = jQuery.datepicker.parseDate("dd/mm/yy", dateStr);
         date = new Date(epoch);
       } catch(e) { return null; }
     //simple regex parse
@@ -962,8 +969,8 @@ var Utils = {
    * @param {jqObject} field
    */
   isRTL: function(field) {
-    var $document = $(document);
-    var $body = $('body');
+    var $document = jQuery(document);
+    var $body = jQuery('body');
     var rtl =
       (field && field.hasClass('rtl')) ||
       (field && (field.attr('dir') || '').toLowerCase()==='rtl') ||
@@ -2205,6 +2212,12 @@ var FormExecution = null,
   });
 
 })();
+(function($) {
+
+/* ===================================== *
+ * Plugin Public Interface
+ * ===================================== */
+
 $.fn.validate = function(callback) {
   var validator = $(this).data('verify');
   if(validator)
@@ -2277,6 +2290,7 @@ $(function() {
 
 log("plugin added.");
 
+})(jQuery);
 
 (function($) {
 
