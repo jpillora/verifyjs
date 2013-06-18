@@ -24,8 +24,8 @@ module.exports = (grunt) ->
     "src/vendor/jquery.console.js"
     "src/helper/*.js"
     "src/modules/*.js"
-    "src/rules/verify-rules.core.js"
-    "src/rules/verify-rules.numeric.js"
+    "src/rules/core/core.js"
+    "src/rules/numeric/numeric.js"
   ]
   # Project configuration.
   grunt.initConfig

@@ -26,20 +26,22 @@
      */
     date: {
       fn: function(r) {
-        if(!r.parse(r.args[0]))
-          return r.message;
+        if(!r.parse(r.field, r.args[0]))
+          return r.messages.format;
         return true;
       },
-      parse: function(format) {
-        this.format = format || this.DEFAULT_FORMAT;
-        var m = moment(this.val(), format);
+      parse: function(field, format) {
+        if(format) this.format = format;
+        var m = moment(field.val(), format);
         if(!m.isValid())
           return null;
-        this.val(m.format(this.format));
+        field.val(m.format(this.format));
         return m;
       },
-      DEFAULT_FORMAT: 'YYYY-MM-DD',
-      message: "Must be in {{ format }} format"
+      format: 'YYYY-MM-DD',
+      messages: {
+        format: "Must be in {{ format }} format"
+      }
     },
 
     /**
@@ -59,15 +61,17 @@
           r.warn("Invalid Age Param: " + r.args[0]);
           return true;
         }
-        var m = r.parse(r.args[1]);
+        var m = r.parse(r.field, r.args[1]);
         if(!m)
           return r.message;
         var past = moment().subtract(r.age, 'years');
         if(m.isAfter(past))
-          return r.messageMinAge;
+          return r.messages.minAge;
         return true;
       },
-      messageMinAge: "You must be at least {{ age }}"
+      messages: {
+        minAge: "You must be at least {{ age }}"
+      }
     }
     /** */
   });
@@ -84,27 +88,28 @@
      * @valid #start(2013-06-17) #end(2014-06-17)
      */
     dateRange: {
+      extend: "date",
       fn: function(r) {
         var start = r.field("start"),
             end = r.field("end");
 
-        if(start.length === 0 || end.length === 0) {
-          r.warn("Missing 'dateRange' fields, skipping...");
-          return true;
-        }
+        if(!start || !end) return true;
 
-        var startDate = $.verify.utils.parseDate(start.val());
+        var startDate = r.parse(start, r.format);
         if(!startDate)
-          return "Invalid Start Date";
+          return { start: r.messages.format };
 
-        var endDate = $.verify.utils.parseDate(end.val());
+        var endDate = r.parse(end, r.format);
         if(!endDate)
-          return "Invalid End Date";
+          return { start: r.messages.format };
 
-        if(startDate >= endDate)
-          return "Start Date must come before End Date";
+        if(startDate.isAfter(endDate))
+          return r.messages.range;
 
         return true;
+      },
+      messages: {
+        range: "Start Date must come before End Date"
       }
 
     }

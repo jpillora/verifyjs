@@ -53,8 +53,8 @@ describe "Validation rules", ->
                   field.val(f.value)
                   form.prepend field
 
-                form.attr 'id', rule.name
-                console.log form[0]
+                # form.attr 'id', rule.name
+                # console.log form[0]
 
                 form.validate (result) ->
                   expect(result).to.equal t is 'valid'

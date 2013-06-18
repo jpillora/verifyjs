@@ -241,7 +241,7 @@
         "name": "size",
         "type": "field",
         "description": "<p>Ensures the number of characters is a inside a given length range</p>",
-        "code": "size: {\n      fn: function(r){\n        var len = r.val().length;\n        r.min = parseInt(r.args[0], 10);\n        r.max = parseInt(r.args[1], 10) || r.min;\n\n        if(!r.min){\n          r.warn(\"Invalid argument: \"+r.args[0]);\n          return true;\n        }\n\n        r.warn(\" \" + r.min + \"-\" + r.max + \"  \" + len + \" \" + r.val());\n\n        if(len < r.min || len > r.max)\n          return r.messages[r.min === r.max ? 'exact' : 'range'];\n\n        return true;\n      },\n      messages: {\n        range: \"Must be between {{ min }} and {{ max }} characters\",\n        exact: \"Must be {{ min }} characters\"\n      }\n    }"
+        "code": "size: {\n      fn: function(r){\n        var len = r.val().length;\n        r.min = parseInt(r.args[0], 10);\n        r.max = parseInt(r.args[1], 10) || r.min;\n\n        if(!r.min){\n          r.warn(\"Invalid argument: \"+r.args[0]);\n          return true;\n        }\n\n        if(len < r.min || len > r.max)\n          return r.messages[r.min === r.max ? 'exact' : 'range'];\n\n        return true;\n      },\n      messages: {\n        range: \"Must be between {{ min }} and {{ max }} characters\",\n        exact: \"Must be {{ min }} characters\"\n      }\n    }"
       }
     ],
     "dependencies": [],
@@ -281,7 +281,7 @@
         "name": "date",
         "type": "field",
         "description": "<p>Ensures a valid date</p>",
-        "code": "date: {\n      fn: function(r) {\n        if(!r.parse(r.args[0]))\n          return r.message;\n        return true;\n      },\n      parse: function(format) {\n        console.log('parse '+ this.val() + ' with ' + format);\n        this.format = format || this.DEFAULT_FORMAT;\n        var m = moment(this.val(), format);\n        if(!m.isValid())\n          return null;\n        this.val(m.format(this.format));\n        console.log('valid! ', this.val());\n        return m;\n      },\n      DEFAULT_FORMAT: 'YYYY-MM-DD',\n      message: \"Must be in {{ format }} format\"\n    },"
+        "code": "date: {\n      fn: function(r) {\n        if(!r.parse(r.field, r.args[0]))\n          return r.messages.format;\n        return true;\n      },\n      parse: function(field, format) {\n        if(format) this.format = format;\n        var m = moment(field.val(), format);\n        if(!m.isValid())\n          return null;\n        field.val(m.format(this.format));\n        return m;\n      },\n      format: 'YYYY-MM-DD',\n      messages: {\n        format: \"Must be in {{ format }} format\"\n      }\n    },"
       },
       {
         "namespace": "date",
@@ -303,7 +303,7 @@
         "name": "minAge",
         "type": "field",
         "description": "<p>Ensures a valid date and that this date is g to a mimum age</p>",
-        "code": "minAge: {\n      extend: \"date\",\n      fn: function(r) {\n        r.age = parseInt(r.args[0],10);\n        if(!r.age) {\n          r.warn(\"Invalid Age Param: \" + r.args[0]);\n          return true;\n        }\n        var m = r.parse(r.args[1]);\n        if(!m)\n          return r.message;\n        var past = moment().subtract(r.age, 'years');\n        if(m.isAfter(past))\n          return r.messageMinAge;\n        return true;\n      },\n      messageMinAge: \"You must be at least {{ age }}\"\n    }"
+        "code": "minAge: {\n      extend: \"date\",\n      fn: function(r) {\n        r.age = parseInt(r.args[0],10);\n        if(!r.age) {\n          r.warn(\"Invalid Age Param: \" + r.args[0]);\n          return true;\n        }\n        var m = r.parse(r.field, r.args[1]);\n        if(!m)\n          return r.message;\n        var past = moment().subtract(r.age, 'years');\n        if(m.isAfter(past))\n          return r.messages.minAge;\n        return true;\n      },\n      messages: {\n        minAge: \"You must be at least {{ age }}\"\n      }\n    }"
       },
       {
         "namespace": "date",
@@ -323,7 +323,7 @@
         "name": "dateRange",
         "type": "field",
         "description": "<p>Ensures a valid date range - e.g. start &lt; end</p>",
-        "code": "dateRange: {\n      fn: function(r) {\n        var start = r.field(\"start\"),\n            end = r.field(\"end\");\n\n        if(start.length === 0 || end.length === 0) {\n          r.warn(\"Missing 'dateRange' fields, skipping...\");\n          return true;\n        }\n\n        var startDate = $.verify.utils.parseDate(start.val());\n        if(!startDate)\n          return \"Invalid Start Date\";\n\n        var endDate = $.verify.utils.parseDate(end.val());\n        if(!endDate)\n          return \"Invalid End Date\";\n\n        if(startDate >= endDate)\n          return \"Start Date must come before End Date\";\n\n        return true;\n      }\n\n    }"
+        "code": "dateRange: {\n      extend: \"date\",\n      fn: function(r) {\n        var start = r.field(\"start\"),\n            end = r.field(\"end\");\n\n        if(!start || !end) return true;\n\n        var startDate = r.parse(start, r.format);\n        if(!startDate)\n          return { start: r.messages.format };\n\n        var endDate = r.parse(end, r.format);\n        if(!endDate)\n          return { start: r.messages.format };\n\n        if(startDate.isAfter(endDate))\n          return r.messages.range;\n\n        return true;\n      },\n      messages: {\n        range: \"Start Date must come before End Date\"\n      }\n\n    }"
       }
     ],
     "dependencies": [

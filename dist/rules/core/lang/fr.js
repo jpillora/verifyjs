@@ -1,7 +1,6 @@
 /**
  * Core - French Translation
- *  >>> Warning: This file was auto-translated
- *  >>> Please contribute!
+ *  >>> Warning: This file was auto-translated - Please contribute!
  * @author Jaime Pillora
  */
 (function($) {

@@ -58,8 +58,6 @@ describe("Validation rules", function() {
                   field.val(f.value);
                   return form.prepend(field);
                 });
-                form.attr('id', rule.name);
-                console.log(form[0]);
                 return form.validate(function(result) {
                   expect(result).to.equal(t === 'valid');
                   return done();

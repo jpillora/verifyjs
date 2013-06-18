@@ -203,8 +203,6 @@
           return true;
         }
 
-        r.warn(" " + r.min + "-" + r.max + "  " + len + " " + r.val());
-
         if(len < r.min || len > r.max)
           return r.messages[r.min === r.max ? 'exact' : 'range'];
 
