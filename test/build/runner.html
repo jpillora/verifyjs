@@ -398,15 +398,105 @@
     "rules": [
       {
         "namespace": "numeric",
-        "params": [],
+        "params": [
+          {
+            "name": "The",
+            "type": "symbol",
+            "description": "currency symbol to expect"
+          }
+        ],
         "tests": {
-          "valids": [],
-          "invalids": []
+          "valids": [
+            "$100.00",
+            "-$100.00",
+            "#params(*) -*100.00"
+          ],
+          "invalids": [
+            "100.00",
+            "-*100.00"
+          ]
         },
         "name": "currency",
         "type": "field",
         "description": "<p>Ensures valid currency</p>",
-        "code": "currency: {\n      fn: function(r) {\n        if(r.args[0]) r.symbol = r.args[0];\n        if(!/^\\-?(.)\\d{1,2}(,?\\d{3})*(\\.\\d+)?$/.test(r.val()))\n          return r.message.invalidValue;\n        if(!RegExp.$1 || RegExp.$1 !== r.symbol)\n          return r.message.invalidCurrency;\n\n        return true;\n      },\n      symbol: '$',\n      message: {\n        invalidValue: \"Invalid monetary value\",\n        invalidCurrency: \"Invalid Currency {{ symbol }}\"\n      }\n    },\n    decimal: function(r) {\n      var vStr = r.val(),\n          places = r.args[0] ? parseInt(r.args[0], 10) : 2;\n\n      if(!vStr.match(/^\\-?\\d+(,\\d{3})*(\\.\\d+)?$/))\n        return \"Invalid decimal value\";\n\n      var v = parseFloat(vStr.replace(/[^\\d\\.]/g,'')),\n          factor = Math.pow(10,places);\n\n      v = (Math.round(v*factor)/factor);\n      r.field.val(v);\n\n      return true;\n    },\n    minVal: function(r) {\n      var v = parseFloat(r.val().replace(/[^\\d\\.]/g,'')),\n          suffix = r.args[1] || '',\n          min = parseFloat(r.args[0]);\n      if(v < min)\n        return \"Must be greater than \" + min + suffix;\n      return true;\n    },\n    maxVal: function(r) {\n      var v = parseFloat(r.val().replace(/[^\\d\\.]/g,'')),\n          suffix = r.args[1] || '',\n          max = parseFloat(r.args[0]);\n      if(v > max)\n        return \"Must be less than \" + max + suffix;\n      return true;\n    },\n    rangeVal: function(r) {\n      var v = parseFloat(r.val().replace(/[^\\d\\.]/g,'')),\n          prefix = r.args[2] || '',\n          suffix = r.args[3] || '',\n          min = parseFloat(r.args[0]),\n          max = parseFloat(r.args[1]);\n      if(v > max || v < min)\n        return \"Must be between \" + prefix + min + suffix + \"\\nand \" + prefix + max + suffix;\n      return true;\n    }\n\n  });\n})(jQuery);"
+        "code": "currency: {\n      fn: function(r) {\n        if(r.args[0]) r.symbol = r.args[0];\n        if(!/^\\-?(.)\\d+(,?\\d{3})*(\\.\\d+)?$/.test(r.val()))\n          return r.message.invalidValue;\n        if(!RegExp.$1 || RegExp.$1 !== r.symbol)\n          return r.message.invalidCurrency;\n\n        return true;\n      },\n      symbol: '$',\n      message: {\n        invalidValue: \"Invalid monetary value\",\n        invalidCurrency: \"Missing '{{ symbol }}' symbol\"\n      }\n    },"
+      },
+      {
+        "namespace": "numeric",
+        "params": [
+          {
+            "name": "The",
+            "type": "places",
+            "description": "numbers of places to round"
+          }
+        ],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "name": "decimal",
+        "type": "field",
+        "description": "<p>Ensures valid decimal number and rounds it</p>",
+        "code": "decimal: {\n      fn: function(r) {\n        var vStr = r.val(),\n            places = r.args[0] ? parseInt(r.args[0], 10) : 2;\n\n        if(!vStr.match(/^\\-?\\d+(,\\d{3})*(\\.\\d+)?$/))\n          return r.message;\n\n        var v = parseFloat(vStr.replace(/[^\\d\\.]/g,'')),\n            factor = Math.pow(10,places);\n\n        v = (Math.round(v*factor)/factor);\n        r.field.val(v);\n\n        return true;\n      },\n      message: \"Invalid decimal value\"\n    },"
+      },
+      {
+        "namespace": "numeric",
+        "params": [
+          {
+            "name": "The",
+            "type": "min",
+            "description": "minimum value"
+          }
+        ],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "name": "minVal",
+        "type": "field",
+        "description": "<p>Ensures the input is greater than the given value</p>",
+        "code": "minVal: {\n      fn:function(r) {\n        var v = parseFloat(r.val().replace(/[^\\d\\.]/g,''));\n        r.min = parseFloat(r.args[0]);\n        if(r.args[1]) r.suffix = r.args[1];\n        if(r.args[2]) r.suffix = r.args[2];\n        if(v < r.min)\n          return r.message;\n        r.val(v);\n        return true;\n      },\n      prefix: '',\n      suffix: '',\n      message: \"Must be greater than { prefix }{ min }{ suffix }\"\n    },"
+      },
+      {
+        "namespace": "numeric",
+        "params": [
+          {
+            "name": "The",
+            "type": "max",
+            "description": "maximum value"
+          }
+        ],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "name": "maxVal",
+        "type": "field",
+        "description": "<p>Ensures the input is less than the given value</p>",
+        "code": "maxVal: {\n      fn:function(r) {\n        var v = parseFloat(r.val().replace(/[^\\d\\.]/g,''));\n        r.max = parseFloat(r.args[0]);\n        if(r.args[1]) r.suffix = r.args[1];\n        if(r.args[2]) r.suffix = r.args[2];\n        if(v > r.max)\n          return r.message;\n        r.val(v);\n        return true;\n      },\n      prefix: '',\n      suffix: '',\n      message: \"Must be less than { prefix }{ max }{ suffix }\"\n    },"
+      },
+      {
+        "namespace": "numeric",
+        "params": [
+          {
+            "name": "The",
+            "type": "min",
+            "description": "minimum value"
+          },
+          {
+            "name": "The",
+            "type": "max",
+            "description": "maximum value"
+          }
+        ],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "name": "rangeVal",
+        "type": "field",
+        "description": "<p>Ensures the input is within the given range</p>",
+        "code": "rangeVal: {\n      fn: function(r) {\n        var v = parseFloat(r.val().replace(/[^\\d\\.]/g,''));\n\n        r.min = parseFloat(r.args[0]);\n        r.max = parseFloat(r.args[1]);\n        if(r.args[2]) r.suffix = r.args[2];\n        if(r.args[3]) r.suffix = r.args[3];\n\n        if(v > r.max || v < r.min)\n          return r.message;\n        return true;\n      },\n      prefix: '',\n      suffix: '',\n      message: \"Must be between { prefix }{ min }{ suffix }\\nand { prefix }{ max }{ suffix }\"\n    }"
       }
     ],
     "dependencies": [],
