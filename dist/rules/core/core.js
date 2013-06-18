@@ -27,7 +27,7 @@
      * @invalid http://jpilloracom
      */
     url: {
-      regex: /^https?:\/\/[\-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[\-A-Za-z0-9+&@#\/%=~_|]/,
+      regex: /^https?:\/\/(\S+(\:\S*)?@)?((?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)(\.([a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)*(\.([a-z\u00a1-\uffff]{2,}))(:\d{2,5})?(\/[^\s]*)?$/i,
       message: "Invalid URL"
     },
     /**
@@ -98,9 +98,9 @@
         return true;
       },
       messages: {
-        "all": "This field is required",
-        "multiple": "Please select an option",
-        "single": "This checkbox is required"
+        all: "This field is required",
+        multiple: "Please select an option",
+        single: "This checkbox is required"
       }
     },
     /**
@@ -110,9 +110,9 @@
      * @param {String} message The error message displayed (default: 'Invalid Format')
      * @type field
      * 
-     * @valid (bcde) abcdef
-     * @valid ($abc) abcdef
-     * @invalid ($cde) abcdef
+     * @valid #params(bcde) abcdef
+     * @valid #params(^abc) abcdef
+     * @invalid #params($cde) abcdef
      */
     regex: {
       fn: function(r) {
@@ -125,7 +125,7 @@
           return true;
         }
 
-        if(!r.val().match(re))
+        if(!re.test(r.val()))
           return r.args[1] || r.message;
         return true;
       },
@@ -145,9 +145,9 @@
      * @param {Integer} min An integer representing the minimum number of characters
      * @type field
      *
-     * @valid (5) aaaaa
-     * @valid (3) aaaaa
-     * @invalid (5) aaa
+     * @valid   #params(5) aaaaa
+     * @valid   #params(3) aaaaa
+     * @invalid #params(5) aaa
      */
     min: {
       fn:function(r) {
@@ -165,9 +165,9 @@
      * @param {Integer} max An integer representing the maximum number of characters
      * @type field
      *
-     * @valid (5) aaaaa
-     * @valid (3) aaa
-     * @invalid (3) aaaaa
+     * @valid   #params(5) aaaaa
+     * @valid   #params(3) aaa
+     * @invalid #params(3) aaaaa
      */
     max: {
       fn: function(r) {
@@ -186,11 +186,11 @@
      * @param {String} max An integer representing the maximum number of characters (default: min)
      * @type field
      *
-     * @valid (5) aaaaa
-     * @valid (3) aaa
-     * @valid (3,5) aaaa
-     * @invalid (3,5) aaaaaaaa
-     * @invalid (3,5) 
+     * @valid   #params(5) aaaaa
+     * @valid   #params(3) aaa
+     * @valid   #params(3,5) aaaa
+     * @invalid #params(3,5) aaaaaaaa
+     * @invalid #params(3,5) 
      */
     size: {
       fn: function(r){
@@ -199,15 +199,14 @@
         r.max = parseInt(r.args[1], 10) || r.min;
 
         if(!r.min){
-          r.warn("Invalid argument: #{r.args[0]}");
+          r.warn("Invalid argument: "+r.args[0]);
           return true;
         }
 
-        if(len < r.min || r.max > len)
-          if(r.min === r.max)
-            return r.messages.exact;
-          else
-            return r.messages.range;
+        r.warn(" " + r.min + "-" + r.max + "  " + len + " " + r.val());
+
+        if(len < r.min || len > r.max)
+          return r.messages[r.min === r.max ? 'exact' : 'range'];
 
         return true;
       },

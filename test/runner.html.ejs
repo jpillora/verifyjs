@@ -19,11 +19,24 @@
 
     <!-- verifyjs -->
     <script type="text/javascript" src="../../dist/verify.js"></script>
+    
+    <%
+      var manifest = read('dist/rules/manifest.json')
+      var deps = [];
+      parse(manifest).forEach(function(obj) {
+        obj.dependencies.forEach(function(dep) {
+          deps.push('dist/rules/'+obj.namespace+'/vendor/'+dep);
+        });
+      });
+    %>
     <!-- rule manifest -->
     <script type="text/javascript">
-      var MANIFEST = <%- read('dist/rules/manifest.json') %>;
+      var MANIFEST = <%- manifest %>;
     </script>
-    <!-- all rules -->
+
+    <!-- rules deps -->
+    <%- deps.map(render).join('    ') %>
+    <!-- rules -->
     <%- expand('dist/rules/*/*.js').map(render).join('    ') %>
 
     <!-- tests -->
@@ -43,7 +56,19 @@
       if (navigator.userAgent.indexOf('PhantomJS') === -1)
         $(function() {
           mocha.run(function() {
-            if(window['console']) console.warn(arguments);
+
+            var errors = $(".test.fail h2").map(function() {
+              var titles = $(this).parents('.suite').map(function() {
+                return $(this).children("h1").text();
+              }).toArray().reverse();
+              titles.push($(this).text());
+              return titles.join(' > ');
+            }).toArray();
+
+            var str = JSON.stringify(errors, null, 2);
+
+            if(window['console'] && errors.length)
+              console.warn(str);
           });
         });
     </script>

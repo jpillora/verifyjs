@@ -36,9 +36,10 @@
         "name": "phone",
         "type": "field",
         "description": "<p>Ensures an australian phone number  </p>",
-        "code": "phone: function(r) {\n      r.val(r.val().replace(/\\D/g,''));\n      var v = r.val();\n      if(!v.match(/^\\+?[\\d\\s]+$/))\n        return \"Use digits and spaces only\";\n      if(v.match(/^\\+\\d+$/))\n        return true; //allow all international\n      if(!v.match(/^0/))\n        return \"Number must start with 0\";\n      if(v.replace(/\\s/g,\"\").length !== 10)\n        return \"Must be 10 digits long\";\n      return true;\n    }"
+        "code": "phone: function(r) {\n      r.val(r.val().replace(/[^\\+\\d]/g,''));\n      var v = r.val();\n      if(!v.match(/^\\+?[\\d\\s]+$/))\n        return \"Use digits and spaces only\";\n      if(v.match(/^\\+\\d+$/))\n        return true; //allow all international\n      if(!v.match(/^0/))\n        return \"Number must start with 0\";\n      if(v.replace(/\\s/g,\"\").length !== 10)\n        return \"Must be 10 digits long\";\n      return true;\n    }"
       }
     ],
+    "dependencies": [],
     "langs": []
   },
   {
@@ -76,7 +77,7 @@
         "name": "url",
         "type": "field",
         "description": "<p>Ensures a valid URL</p>",
-        "code": "url: {\n      regex: /^https?:\\/\\/[\\-A-Za-z0-9+&@#\\/%?=~_|!:,.;]*[\\-A-Za-z0-9+&@#\\/%=~_|]/,\n      message: \"Invalid URL\"\n    },"
+        "code": "url: {\n      regex: /^https?:\\/\\/(\\S+(\\:\\S*)?@)?((?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)(\\.([a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*(\\.([a-z\\u00a1-\\uffff]{2,}))(:\\d{2,5})?(\\/[^\\s]*)?$/i,\n      message: \"Invalid URL\"\n    },"
       },
       {
         "namespace": "core",
@@ -124,7 +125,7 @@
         "name": "required",
         "type": "field",
         "description": "<p>Ensures the field has filled in</p>",
-        "code": "required: {\n\n      fn: function(r) {\n        return r.requiredField(r, r.field);\n      },\n\n      requiredField: function(r, field) {\n        var v = field.val();\n\n        switch (field.prop(\"type\")) {\n          case \"radio\":\n          case \"checkbox\":\n            var name = field.attr(\"name\");\n            var group = field.data('fieldGroup');\n\n            if(!group) {\n              group = r.form.find(\"input[name='\" + name + \"']\");\n              field.data('fieldGroup', group);\n            }\n\n            if (group.is(\":checked\"))\n              break;\n\n            if (group.size() === 1)\n              return r.messages.single;\n\n            return r.messages.multiple;\n\n          default:\n            if (! $.trim(v))\n              return r.messages.all;\n            break;\n        }\n        return true;\n      },\n      messages: {\n        \"all\": \"This field is required\",\n        \"multiple\": \"Please select an option\",\n        \"single\": \"This checkbox is required\"\n      }\n    },"
+        "code": "required: {\n\n      fn: function(r) {\n        return r.requiredField(r, r.field);\n      },\n\n      requiredField: function(r, field) {\n        var v = field.val();\n\n        switch (field.prop(\"type\")) {\n          case \"radio\":\n          case \"checkbox\":\n            var name = field.attr(\"name\");\n            var group = field.data('fieldGroup');\n\n            if(!group) {\n              group = r.form.find(\"input[name='\" + name + \"']\");\n              field.data('fieldGroup', group);\n            }\n\n            if (group.is(\":checked\"))\n              break;\n\n            if (group.size() === 1)\n              return r.messages.single;\n\n            return r.messages.multiple;\n\n          default:\n            if (! $.trim(v))\n              return r.messages.all;\n            break;\n        }\n        return true;\n      },\n      messages: {\n        all: \"This field is required\",\n        multiple: \"Please select an option\",\n        single: \"This checkbox is required\"\n      }\n    },"
       },
       {
         "namespace": "core",
@@ -142,17 +143,17 @@
         ],
         "tests": {
           "valids": [
-            "(bcde) abcdef",
-            "($abc) abcdef"
+            "#params(bcde) abcdef",
+            "#params(^abc) abcdef"
           ],
           "invalids": [
-            "($cde) abcdef"
+            "#params($cde) abcdef"
           ]
         },
         "name": "regex",
         "type": "field",
         "description": "<p>Ensures the field matches the provided regular expression</p>",
-        "code": "regex: {\n      fn: function(r) {\n        var re;\n        try {\n          var str = r.args[0];\n          re = new RegExp(str);\n        } catch(error) {\n          r.warn(\"Invalid regex: \" + str);\n          return true;\n        }\n\n        if(!r.val().match(re))\n          return r.args[1] || r.message;\n        return true;\n      },\n      message: \"Invalid format\"\n    },"
+        "code": "regex: {\n      fn: function(r) {\n        var re;\n        try {\n          var str = r.args[0];\n          re = new RegExp(str);\n        } catch(error) {\n          r.warn(\"Invalid regex: \" + str);\n          return true;\n        }\n\n        if(!re.test(r.val()))\n          return r.args[1] || r.message;\n        return true;\n      },\n      message: \"Invalid format\"\n    },"
       },
       {
         "namespace": "core",
@@ -177,11 +178,11 @@
         ],
         "tests": {
           "valids": [
-            "(5) aaaaa",
-            "(3) aaaaa"
+            "#params(5) aaaaa",
+            "#params(3) aaaaa"
           ],
           "invalids": [
-            "(5) aaa"
+            "#params(5) aaa"
           ]
         },
         "name": "min",
@@ -200,11 +201,11 @@
         ],
         "tests": {
           "valids": [
-            "(5) aaaaa",
-            "(3) aaa"
+            "#params(5) aaaaa",
+            "#params(3) aaa"
           ],
           "invalids": [
-            "(3) aaaaa"
+            "#params(3) aaaaa"
           ]
         },
         "name": "max",
@@ -228,21 +229,22 @@
         ],
         "tests": {
           "valids": [
-            "(5) aaaaa",
-            "(3) aaa",
-            "(3,5) aaaa"
+            "#params(5) aaaaa",
+            "#params(3) aaa",
+            "#params(3,5) aaaa"
           ],
           "invalids": [
-            "(3,5) aaaaaaaa",
-            "(3,5)"
+            "#params(3,5) aaaaaaaa",
+            "#params(3,5)"
           ]
         },
         "name": "size",
         "type": "field",
         "description": "<p>Ensures the number of characters is a inside a given length range</p>",
-        "code": "size: {\n      fn: function(r){\n        var len = r.val().length;\n        r.min = parseInt(r.args[0], 10);\n        r.max = parseInt(r.args[1], 10) || r.min;\n\n        if(!r.min){\n          r.warn(\"Invalid argument: #{r.args[0]}\");\n          return true;\n        }\n\n        if(len < r.min || r.max > len)\n          if(r.min === r.max)\n            return r.messages.exact;\n          else\n            return r.messages.range;\n\n        return true;\n      },\n      messages: {\n        range: \"Must be between {{ min }} and {{ max }} characters\",\n        exact: \"Must be {{ min }} characters\"\n      }\n    }"
+        "code": "size: {\n      fn: function(r){\n        var len = r.val().length;\n        r.min = parseInt(r.args[0], 10);\n        r.max = parseInt(r.args[1], 10) || r.min;\n\n        if(!r.min){\n          r.warn(\"Invalid argument: \"+r.args[0]);\n          return true;\n        }\n\n        r.warn(\" \" + r.min + \"-\" + r.max + \"  \" + len + \" \" + r.val());\n\n        if(len < r.min || len > r.max)\n          return r.messages[r.min === r.max ? 'exact' : 'range'];\n\n        return true;\n      },\n      messages: {\n        range: \"Must be between {{ min }} and {{ max }} characters\",\n        exact: \"Must be {{ min }} characters\"\n      }\n    }"
       }
     ],
+    "dependencies": [],
     "langs": [
       "src/rules/core/lang/en.js",
       "src/rules/core/lang/fr.js"
@@ -263,20 +265,22 @@
         "tests": {
           "valids": [
             "2013-06-17",
-            "(YYYY/MM/DD) 2013/06/17",
-            "(DD/MM/YYYY) 17/06/2013"
+            "#params(YYYY-MM-DD) 2013-06-17",
+            "#params(YYYY/MM/DD) 2013/06/17",
+            "#params(DD/MM/YYYY) 17/06/2013"
           ],
           "invalids": [
             "17/06/2013",
             "17-06-2013",
             "17th of June 2013",
+            "#params(YYYY/MM/DD) 2013-06-17",
             ""
           ]
         },
         "name": "date",
         "type": "field",
         "description": "<p>Ensures a valid date</p>",
-        "code": "date: {\n      fn: function(r) {\n        if(!r.parse(r.args[0]))\n          return r.message;\n      },\n      parse: function(format) {\n        this.format = format || this.DEFAULT_FORMAT;\n        var m = moment(this.val(), format);\n        if(!m.isValid()) return null;\n        return m;\n      },\n      DEFAULT_FORMAT: 'YYYY-MM-DD',\n      message: \"Must be in {{ format }} format\"\n    },"
+        "code": "date: {\n      fn: function(r) {\n        if(!r.parse(r.args[0]))\n          return r.message;\n        return true;\n      },\n      parse: function(format) {\n        console.log('parse '+ this.val() + ' with ' + format);\n        this.format = format || this.DEFAULT_FORMAT;\n        var m = moment(this.val(), format);\n        if(!m.isValid()) return null;\n        return m;\n      },\n      DEFAULT_FORMAT: 'YYYY-MM-DD',\n      message: \"Must be in {{ format }} format\"\n    },"
       },
       {
         "namespace": "date",
@@ -289,10 +293,10 @@
         ],
         "tests": {
           "valids": [
-            "(18) 1980-06-17"
+            "#params(18) 1980-06-17"
           ],
           "invalids": [
-            "(18) 2013-06-17"
+            "#params(18) 2013-06-17"
           ]
         },
         "name": "minAge",
@@ -310,20 +314,59 @@
           }
         ],
         "tests": {
-          "valids": [],
+          "valids": [
+            "#start(2013-06-17) #end(2014-06-17)"
+          ],
           "invalids": []
         },
-        "name": "minAge",
+        "name": "dateRange",
         "type": "field",
-        "description": "<p>Ensures a birthdate equates to at least a given age</p>",
+        "description": "<p>Ensures a valid date range - e.g. start &lt; end</p>",
         "code": "dateRange: {\n      fn: function(r) {\n        var start = r.field(\"start\"),\n            end = r.field(\"end\");\n\n        if(start.length === 0 || end.length === 0) {\n          r.warn(\"Missing 'dateRange' fields, skipping...\");\n          return true;\n        }\n\n        var startDate = $.verify.utils.parseDate(start.val());\n        if(!startDate)\n          return \"Invalid Start Date\";\n\n        var endDate = $.verify.utils.parseDate(end.val());\n        if(!endDate)\n          return \"Invalid End Date\";\n\n        if(startDate >= endDate)\n          return \"Start Date must come before End Date\";\n\n        return true;\n      }\n\n    }"
       }
+    ],
+    "dependencies": [
+      "moment.js"
     ],
     "langs": []
   },
   {
     "namespace": "misc",
-    "rules": [],
+    "rules": [
+      {
+        "namespace": "misc",
+        "params": [],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "name": "agreement",
+        "type": "field",
+        "description": "<p>Ensures a checkbox or radio is checked</p>",
+        "code": "agreement: {\n      fn: function(r){\n        if(!r.field.is(\":checked\"))\n          return r.message;\n        return true;\n      },\n      message:  \"You must agree to continue\"\n    },"
+      },
+      {
+        "namespace": "misc",
+        "params": [],
+        "tests": {
+          "valids": [
+            "1",
+            "1-5",
+            "1a",
+            "1a-5b"
+          ],
+          "invalids": [
+            "a",
+            "a-5b"
+          ]
+        },
+        "name": "streetNumber",
+        "type": "field",
+        "description": "<p>Ensures a valid street number</p>",
+        "code": "streetNumber: {\n      regex: /^\\d+[A-Za-z]?(-\\d+[A-Za-z]?)?$/,\n      message: \"Street Number only\"\n    }"
+      }
+    ],
+    "dependencies": [],
     "langs": []
   },
   {
@@ -342,6 +385,7 @@
         "code": "currency: {\n      fn: function(r) {\n        if(r.args[0]) r.symbol = r.args[0];\n        if(!/^\\-?(.)\\d{1,2}(,?\\d{3})*(\\.\\d+)?$/.test(r.val()))\n          return r.message.invalidValue;\n        if(!RegExp.$1 || RegExp.$1 !== r.symbol)\n          return r.message.invalidCurrency;\n\n        return true;\n      },\n      symbol: '$',\n      message: {\n        invalidValue: \"Invalid monetary value\",\n        invalidCurrency: \"Invalid Currency {{ symbol }}\"\n      }\n    },\n    decimal: function(r) {\n      var vStr = r.val(),\n          places = r.args[0] ? parseInt(r.args[0], 10) : 2;\n\n      if(!vStr.match(/^\\-?\\d+(,\\d{3})*(\\.\\d+)?$/))\n        return \"Invalid decimal value\";\n\n      var v = parseFloat(vStr.replace(/[^\\d\\.]/g,'')),\n          factor = Math.pow(10,places);\n\n      v = (Math.round(v*factor)/factor);\n      r.field.val(v);\n\n      return true;\n    },\n    minVal: function(r) {\n      var v = parseFloat(r.val().replace(/[^\\d\\.]/g,'')),\n          suffix = r.args[1] || '',\n          min = parseFloat(r.args[0]);\n      if(v < min)\n        return \"Must be greater than \" + min + suffix;\n      return true;\n    },\n    maxVal: function(r) {\n      var v = parseFloat(r.val().replace(/[^\\d\\.]/g,'')),\n          suffix = r.args[1] || '',\n          max = parseFloat(r.args[0]);\n      if(v > max)\n        return \"Must be less than \" + max + suffix;\n      return true;\n    },\n    rangeVal: function(r) {\n      var v = parseFloat(r.val().replace(/[^\\d\\.]/g,'')),\n          prefix = r.args[2] || '',\n          suffix = r.args[3] || '',\n          min = parseFloat(r.args[0]),\n          max = parseFloat(r.args[1]);\n      if(v > max || v < min)\n        return \"Must be between \" + prefix + min + suffix + \"\\nand \" + prefix + max + suffix;\n      return true;\n    }\n\n  });\n})(jQuery);"
       }
     ],
+    "dependencies": [],
     "langs": []
   }
 ]

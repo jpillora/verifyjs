@@ -29,7 +29,7 @@
      * @invalid xyz
      */
     phone: function(r) {
-      r.val(r.val().replace(/\D/g,''));
+      r.val(r.val().replace(/[^\+\d]/g,''));
       var v = r.val();
       if(!v.match(/^\+?[\d\s]+$/))
         return "Use digits and spaces only";

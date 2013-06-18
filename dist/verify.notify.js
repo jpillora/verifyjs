@@ -1,10 +1,9 @@
-/** Verify.js - v0.0.1 - 2013/06/17
+/** Verify.js - v0.0.1 - 2013/06/18
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
 
-(function(window,document,undefined) {
-(function(window,document,undefined) {
+(function(window,document,$,undefined) {(function(window,document,undefined) {
 'use strict';
 
 var Notification, addStyle, coreStyle, createElem, defaults, getAnchorElement, getStyle, globalAnchors, hAligns, incr, inherit, insertCSS, mainPositions, opposites, parsePosition, pluginClassName, pluginName, pluginOptions, positions, realign, stylePrefixes, styles, vAligns,
@@ -1078,11 +1077,11 @@ var Rule = BaseClass.extend({
     //does not inherit
     if(!this.userObj) this.userObj = {};
     //clone object to keep a canonical version intact
-    $.extend(this.userObj, userObj);
+    $.extend(true, this.userObj, userObj);
     //infer 'fn' property
     this.buildFn();
     //rule is ready to be used
-    this.ready = this.fn !== undefined;
+    this.ready = typeof this.fn === 'function';
   },
 
   extendInterface: function(parentName) {
@@ -1094,7 +1093,7 @@ var Rule = BaseClass.extend({
     var p, name = parentName, names = [];
     while(name) {
       if(name === this.name)
-        return this.error("Rule already extends '%s'", name);
+        return this.error("Rule already extends '%s'", parentName);
       p = ruleManager.getRawRule(name);
       name = p ? p.extend : null;
     }
@@ -1124,14 +1123,12 @@ var Rule = BaseClass.extend({
     } else if($.type(this.userObj.regex) === "regexp") {
 
       //build regex function
-      this.fn = (function(regex) {
+      this.fn = (function(re) {
         return function(r) {
-          var re = new RegExp(regex);
-          if(!r.val().match(re))
+          if(!re.test(r.val()))
             return r.message || "Invalid Format";
           return true;
         };
-
       })(this.userObj.regex);
 
     } else {
@@ -1189,8 +1186,7 @@ var Rule = BaseClass.extend({
     if(this.type === 'field') {
       objs.push(this.defaultFieldInterface);
       objs.push({ field: exec.element.domElem });
-    }
-    if(this.type === 'group')
+    } else if(this.type === 'group')
       objs.push(this.defaultGroupInterface);
 
     objs.push({
@@ -2270,5 +2266,4 @@ $(function() {
 
 log("plugin added.");
 
-
-}(window,document));
+}(window,document,jQuery));

@@ -19,6 +19,7 @@ module.exports = (grunt) ->
       result = 
         namespace: namespace
         rules:[]
+        dependencies:[]
         langs: grunt.file.expand("#{dir}/lang/*")
 
       #load main file
@@ -34,6 +35,9 @@ module.exports = (grunt) ->
         continue unless meta.tags
 
         for t in meta.tags
+
+          result.dependencies.push t.string if t.type is 'require'
+
           rule.name = t.string if t.type is 'name'
           rule.type = t.types[0] if t.type is 'type'
           rule.tests.valids.push t.string if t.type is 'valid'

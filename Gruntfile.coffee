@@ -47,12 +47,10 @@ module.exports = (grunt) ->
     concat:
       options:
         stripBanners: true
-          #
       dist:
         src: files
         dest: "dist/<%= pkg.name %>.js"
-
-      distPrompt:
+      distNotify:
         src: ["src/vendor/notify.js"].concat(files)
         dest: "dist/<%= pkg.name %>.notify.js"
 
@@ -60,7 +58,13 @@ module.exports = (grunt) ->
       dist:
         src: ['dist/*.js']
         dest: '.'
-        wrapper: ["<%= banner %>\n(function(window,document,undefined) {\n","\n}(window,document));"]
+        wrapper: ["""
+                  <%= banner %>
+                  (function(window,document,$,undefined) {
+                  """,
+                  """
+                  }(window,document,jQuery));
+                  """]
 
     uglify:
       options:
@@ -71,13 +75,13 @@ module.exports = (grunt) ->
         src: "dist/<%= pkg.name %>.js"
         dest: "dist/<%= pkg.name %>.min.js"
 
-      distPrompt:
+      distNotify:
         src: "dist/<%= pkg.name %>.notify.js"
         dest: "dist/<%= pkg.name %>.notify.min.js"
 
     watch:
       default:
-        files: ['src/**/*.js', 'src/rules/*/lang/*.js']
+        files: ['src/**/*.js']
         tasks: 'default'
         options:
           interval: 5000
@@ -150,7 +154,7 @@ module.exports = (grunt) ->
         variables:
           expand: grunt.file.expand
           read: grunt.file.read
-
+          parse: JSON.parse
     mocha:
       test:
         options:
@@ -159,6 +163,6 @@ module.exports = (grunt) ->
 
   #task groups
   grunt.registerTask "build", ["jshint:build","concat","wrap","uglify"]
-  grunt.registerTask "rules", ["jshint:rules","copy:rules"]
+  grunt.registerTask "rules", ["jshint:rules","dox","copy:rules"]
   grunt.registerTask "test", ["coffee:test","template:runner","connect","mocha:test"]
   grunt.registerTask "default", ["build","rules","test"]

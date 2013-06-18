@@ -6,7 +6,6 @@ describe "Validation rules", ->
   html = """
     <div data-demo>
       <form>
-        <input id='field' data-validate=''>
         <input class='submit' type='submit'/>
       </form>
     </div>
@@ -15,7 +14,6 @@ describe "Validation rules", ->
   beforeEach ->
     $('#fixtures').html html
     form = $("form")
-    field = $("#field")
     form.verify(skipHiddenFields: false)
 
   afterEach ->
@@ -23,38 +21,42 @@ describe "Validation rules", ->
 
   #create tests
   _.each MANIFEST, (obj) ->
-    describe "rule set #{obj.namespace}", ->
+    describe "rule-namespace: '#{obj.namespace}'", ->
       _.each obj.rules, (rule) ->
-        console.log "creating tests for #{rule.name}"
-        describe "rule #{rule.name}", ->
+        # console.log "creating tests for #{rule.name}"
+        describe "rule: '#{rule.name}'", ->
           #tests
           _.each ['valids','invalids'], (type) ->
-
             t = type.substr(0,type.length-1)
-
             _.each rule.tests[type], (testcase) ->
-              m = testcase.match ///
-                ^
-                (
-                \(
-                ([^\)]+)
-                \)
-                )?
-                (.*)$
-              ///
-              unless m
-                console.warn "invalid testcase #{testcase}"
-                return
+              params = ''
+              fields = []
+              value = testcase.replace /#(\w+)\(([^\)]+)\)/g, (str,name,value) ->
+                if name is 'params'
+                  params = value
+                else
+                  fields.push {name,value}
+                ''
 
-              params = m[2]
-              value = m[3]
+              value = value.replace /^\s+|\s+$/g,''
+              if value or fields.length is 0
+                fields.push {name:null, value}
+              
+              params = "(#{params})" if params
 
-              console.log "creating #{t} test case: (#{params}) = #{value}"
+              it "'#{testcase}' should be #{t}", (done) ->
 
-              it "'#{value}' should be #{t}", (done) ->
-                field.attr('data-validate', "#{rule.name}(#{params})")
-                field.val(value)
-                field.validate (result) ->
+                _.each fields, (f) ->
+                  field = $("<input/>")
+                  id = if f.name then "##{f.name}" else ""
+                  field.attr('data-validate', "required,#{rule.name}#{id}#{params}")
+                  field.val(f.value)
+                  form.prepend field
+
+                form.attr 'id', rule.name
+                console.log form[0]
+
+                form.validate (result) ->
                   expect(result).to.equal t is 'valid'
                   done()
 

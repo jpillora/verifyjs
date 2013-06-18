@@ -14,19 +14,23 @@
      * @type field
      *
      * @valid 2013-06-17
-     * @valid (YYYY/MM/DD) 2013/06/17
-     * @valid (DD/MM/YYYY) 17/06/2013
+     * @valid #params(YYYY-MM-DD) 2013-06-17
+     * @valid #params(YYYY/MM/DD) 2013/06/17
+     * @valid #params(DD/MM/YYYY) 17/06/2013
      * @invalid 17/06/2013
      * @invalid 17-06-2013
      * @invalid 17th of June 2013
+     * @invalid #params(YYYY/MM/DD) 2013-06-17
      * @invalid 
      */
     date: {
       fn: function(r) {
         if(!r.parse(r.args[0]))
           return r.message;
+        return true;
       },
       parse: function(format) {
+        console.log('parse '+ this.val() + ' with ' + format);
         this.format = format || this.DEFAULT_FORMAT;
         var m = moment(this.val(), format);
         if(!m.isValid()) return null;
@@ -42,8 +46,8 @@
      * @param {Number} age The minimum age
      * @type field
      *
-     * @valid (18) 1980-06-17
-     * @invalid (18) 2013-06-17
+     * @valid #params(18) 1980-06-17
+     * @invalid #params(18) 2013-06-17
      */
     minAge: {
       extend: "date",
@@ -70,10 +74,12 @@
   $.verify.addGroupRules({
 
     /**
-     * Ensures a birthdate equates to at least a given age
-     * @name minAge
+     * Ensures a valid date range - e.g. start < end
+     * @name dateRange
      * @param {Number} age The minimum age
      * @type field
+     *
+     * @valid #start(2013-06-17) #end(2014-06-17)
      */
     dateRange: {
       fn: function(r) {
