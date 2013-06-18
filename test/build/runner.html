@@ -290,20 +290,21 @@
             "2013-06-17",
             "#params(YYYY-MM-DD) 2013-06-17",
             "#params(YYYY/MM/DD) 2013/06/17",
-            "#params(DD/MM/YYYY) 17/06/2013"
+            "#params(DD/MM/YYYY) 17/06/2013",
+            "#params(DD MMMM YYYY) 17 June 2013"
           ],
           "invalids": [
             "17/06/2013",
             "17-06-2013",
             "17th of June 2013",
-            "#params(YYYY/MM/DD) 2013-06-17",
+            "#params(DD MMMM YYYY) 17 Notamonth 2013",
             ""
           ]
         },
         "name": "date",
         "type": "field",
         "description": "<p>Ensures a valid date</p>",
-        "code": "date: {\n      fn: function(r) {\n        if(!r.parse(r.args[0]))\n          return r.message;\n        return true;\n      },\n      parse: function(format) {\n        console.log('parse '+ this.val() + ' with ' + format);\n        this.format = format || this.DEFAULT_FORMAT;\n        var m = moment(this.val(), format);\n        if(!m.isValid()) return null;\n        return m;\n      },\n      DEFAULT_FORMAT: 'YYYY-MM-DD',\n      message: \"Must be in {{ format }} format\"\n    },"
+        "code": "date: {\n      fn: function(r) {\n        if(!r.parse(r.args[0]))\n          return r.message;\n        return true;\n      },\n      parse: function(format) {\n        console.log('parse '+ this.val() + ' with ' + format);\n        this.format = format || this.DEFAULT_FORMAT;\n        var m = moment(this.val(), format);\n        if(!m.isValid())\n          return null;\n        this.val(m.format(this.format));\n        console.log('valid! ', this.val());\n        return m;\n      },\n      DEFAULT_FORMAT: 'YYYY-MM-DD',\n      message: \"Must be in {{ format }} format\"\n    },"
       },
       {
         "namespace": "date",
@@ -445,6 +446,12 @@
       var assert = function(expr, msg) {
         if (!expr) throw new Error(msg || 'failed');
       }
+
+      $.verify({
+        prompt: function(elem, text) {
+          // console.info('PROMPT', text);
+        }
+      });
 
       if (navigator.userAgent.indexOf('PhantomJS') === -1)
         $(function() {

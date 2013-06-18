@@ -53,6 +53,12 @@
         if (!expr) throw new Error(msg || 'failed');
       }
 
+      $.verify({
+        prompt: function(elem, text) {
+          // console.info('PROMPT', text);
+        }
+      });
+
       if (navigator.userAgent.indexOf('PhantomJS') === -1)
         $(function() {
           mocha.run(function() {

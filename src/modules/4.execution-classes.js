@@ -385,8 +385,15 @@ var FormExecution = null,
       return this.d.promise();
     },
 
-    templateResponse: function(string, name) {
-      return name;
+    templateResponse: function(string, prop) {
+
+      var val = this.r[prop];
+
+      if(val !== undefined)
+        return val;
+
+      this.warn('Could not find r.'+prop);
+      return prop;
     },
 
     filterResponse: function(response) {

@@ -17,10 +17,11 @@
      * @valid #params(YYYY-MM-DD) 2013-06-17
      * @valid #params(YYYY/MM/DD) 2013/06/17
      * @valid #params(DD/MM/YYYY) 17/06/2013
+     * @valid #params(DD MMMM YYYY) 17 June 2013
      * @invalid 17/06/2013
      * @invalid 17-06-2013
      * @invalid 17th of June 2013
-     * @invalid #params(YYYY/MM/DD) 2013-06-17
+     * @invalid #params(DD MMMM YYYY) 17 Notamonth 2013
      * @invalid 
      */
     date: {
@@ -33,7 +34,10 @@
         console.log('parse '+ this.val() + ' with ' + format);
         this.format = format || this.DEFAULT_FORMAT;
         var m = moment(this.val(), format);
-        if(!m.isValid()) return null;
+        if(!m.isValid())
+          return null;
+        this.val(m.format(this.format));
+        console.log('valid! ', this.val());
         return m;
       },
       DEFAULT_FORMAT: 'YYYY-MM-DD',
