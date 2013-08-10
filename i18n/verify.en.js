@@ -4,7 +4,7 @@
  */
 window.verifyMessages = window.verifyMessages || {};
 (function ($){
-  window.verifyMessages = $.extend(window.verifyMessages, {
+  window.verifyMessages = $.extend({
     currency: "Invalid monetary value",
     email: "Invalid email address",
     url: "Invalid URL",
@@ -44,5 +44,5 @@ window.verifyMessages = window.verifyMessages || {};
     minAge: "You must be at least %s",
     compare: "The value not match with %s field",
     check: "The value specified is already in use"
-  });
+  }, window.verifyMessages);
 })(window.jQuery);
