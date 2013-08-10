@@ -225,6 +225,20 @@
       if(fieldDate > minDate)
         return "You must be at least " + age;
       return true;
+    },
+    compare: function (r) {
+      if ($(r.args[0]).val() === r.val())
+        return true;
+      return r.args[1] ? r.args[1] : "The value is not match with field "+ r.args[0];
+    },
+    check: function (r) {
+      $.get(r.args[0].replace('%s', r.val()), function (data) {
+        if (!data || data.err || data.error)
+          return r.callback(r.args[1]);
+        r.callback(true);
+      }).fail(function () {
+        r.callback(r.args[1]);
+      });
     }
   });
 
