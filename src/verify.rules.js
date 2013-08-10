@@ -11,35 +11,35 @@
      */
     currency: {
       regex: /^\-?\$?\d{1,2}(,?\d{3})*(\.\d+)?$/,
-      message: "Invalid monetary value"
+      message: window.verifyMessages.currency
     },
     email: {
       regex: /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()\[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-      message: "Invalid email address"
+      message: window.verifyMessages.email
     },
     url: {
       regex: /^https?:\/\/[\-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[\-A-Za-z0-9+&@#\/%=~_|]/,
-      message: "Invalid URL"
+      message: window.verifyMessages.url
     },
     alphanumeric: {
       regex: /^[0-9A-Za-z]+$/,
-      message: "Use digits and letters only"
+      message: window.verifyMessages.alphanumeric
     },
     street_number: {
       regex: /^\d+[A-Za-z]?(-\d+)?[A-Za-z]?$/,
-      message: "Street Number only"
+      message: window.verifyMessages.street_number
     },
     number: {
       regex: /^\d+$/,
-      message: "Use digits only"
+      message: window.verifyMessages.number
     },
     numberSpace: {
       regex: /^[\d\ ]+$/,
-      message: "Use digits and spaces only"
+      message: window.verifyMessages.numberSpace
     },
     postcode: {
       regex: /^\d{4}$/,
-      message: "Invalid postcode"
+      message: window.verifyMessages.postcode
     },
     date: {
       fn: function(r) {
@@ -47,7 +47,7 @@
           return true;
         return r.message;
       },
-      message: "Invalid date"
+      message: window.verifyMessages.date.invalid
     },
     required: {
 
@@ -84,11 +84,7 @@
         }
         return true;
       },
-      messages: {
-        "all": "This field is required",
-        "multiple": "Please select an option",
-        "single": "This checkbox is required"
-      }
+      messages: window.verifyMessages.required
     },
     regex: {
       fn: function(r) {
@@ -105,7 +101,7 @@
           return r.args[1] || r.message;
         return true;
       },
-      message: "Invalid format"
+      message: window.verifyMessages.regex
     },
     //an alias
     pattern: {
@@ -123,13 +119,13 @@
       r.val(r.val().replace(/\D/g,''));
       var v = r.val();
       if(!v.match(/^\+?[\d\s]+$/))
-        return "Use digits and spaces only";
+        return window.verifyMessages.phone[0];
       if(v.match(/^\+/))
         return true; //allow all international
       if(!v.match(/^0/))
-        return "Number must start with 0";
+        return window.verifyMessages.phone[1];
       if(v.replace(/\s/g,"").length !== 10)
-        return "Must be 10 digits long";
+        return window.verifyMessages.phone[2];
       return true;
     },
     size: function(r){
@@ -137,12 +133,12 @@
       if(exactOrLower !== undefined && upper === undefined) {
         var exact = parseInt(exactOrLower, 10);
         if(r.val().length !== exact)
-          return  "Must be "+exact+" characters";
+          return window.verifyMessages.size[0].replace("%s", exact);
       } else if(exactOrLower !== undefined && upper !== undefined) {
         var lower = parseInt(exactOrLower, 10);
         upper = parseInt(upper, 10);
         if(v.length < lower || upper < v.length)
-          return "Must be between "+lower+" and "+upper+" characters";
+          return window.verifyMessages.size[1].replace("%s", lower).replace("%s", upper);
       } else {
         r.warn("size validator parameter error on field: " + r.field.attr('name'));
       }
@@ -152,13 +148,13 @@
     min: function(r) {
       var v = r.val(), min = parseInt(r.args[0], 10);
       if(v.length < min)
-        return "Must be at least " + min + " characters";
+        return window.verifyMessages.min.replace("%s", min);
       return true;
     },
     max: function(r) {
       var v = r.val(), max = parseInt(r.args[0], 10);
       if(v.length > max)
-        return "Must be at most " + max + " characters";
+        return window.verifyMessages.max.replace("%s", max);
       return true;
     },
 
@@ -167,7 +163,7 @@
           places = r.args[0] ? parseInt(r.args[0], 10) : 2;
 
       if(!vStr.match(/^\d+(,\d{3})*(\.\d+)?$/))
-        return "Invalid decimal value";
+        return window.verifyMessages.decimal;
 
       var v = parseFloat(vStr.replace(/[^\d\.]/g,'')),
           factor = Math.pow(10,places);
@@ -182,7 +178,7 @@
           suffix = r.args[1] || '',
           min = parseFloat(r.args[0]);
       if(v < min)
-        return "Must be greater than " + min + suffix;
+        return window.verifyMessages.minVal.replace("%s", min + suffix);
       return true;
     },
     maxVal: function(r) {
@@ -190,7 +186,7 @@
           suffix = r.args[1] || '',
           max = parseFloat(r.args[0]);
       if(v > max)
-        return "Must be less than " + max + suffix;
+        return window.verifyMessages.maxVal.replace("%s", max + suffix);
       return true;
     },
     rangeVal: function(r) {
@@ -200,13 +196,13 @@
           min = parseFloat(r.args[0]),
           max = parseFloat(r.args[1]);
       if(v > max || v < min)
-        return "Must be between " + prefix + min + suffix + "\nand " + prefix + max + suffix;
+        return window.verifyMessages.rangeVal.replace("%s", prefix + min + suffix).replace("%s", prefix + max + suffix);
       return true;
     },
 
     agreement: function(r){
       if(!r.field.is(":checked"))
-        return "You must agree to continue";
+        return window.verifyMessages.agreement;
       return true;
     },
     minAge: function(r){
@@ -221,22 +217,20 @@
       var fieldDate = $.verify.utils.parseDate(r.val());
 
       if(fieldDate === "Invalid Date")
-        return "Invalid Date";
+        return window.verifyMessages.date.invalid;
       if(fieldDate > minDate)
-        return "You must be at least " + age;
+        return window.verifyMessages.minAge.replace("%s", age);
       return true;
     },
     compare: function (r) {
       if ($(r.args[0]).val() === r.val())
         return true;
-      if (r.args[1]) 
-        return r.args[1] ;
-      return "The value is not match with "+ r.args[0].replace('#','')+ ' field';
+      return window.verifyMessages.compare.replace("%s", r.args[1] || r.args[0].replace('#',''));
     },
     check: function (r) {
       $.get(r.args[0].replace('%s', r.val()), function (data) {
         if (!data || data.err || data.error)
-          return r.callback(r.args[1]);
+          return r.callback(r.args[1] || window.verifyMessages.check);
         r.callback(true);
       });
     }
@@ -256,14 +250,14 @@
 
       var startDate = $.verify.utils.parseDate(start.val());
       if(!startDate)
-        return "Invalid Start Date";
+        return window.verifyMessages.date.start;
 
       var endDate = $.verify.utils.parseDate(end.val());
       if(!endDate)
-        return "Invalid End Date";
+        return window.verifyMessages.date.end;
 
       if(startDate >= endDate)
-        return "Start Date must come before End Date";
+        return window.verifyMessages.date.startEnd;
 
       return true;
     },
