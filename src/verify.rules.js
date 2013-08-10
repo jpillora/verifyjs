@@ -229,15 +229,15 @@
     compare: function (r) {
       if ($(r.args[0]).val() === r.val())
         return true;
-      return r.args[1] ? r.args[1] : "The value is not match with field "+ r.args[0];
+      if (r.args[1]) 
+        return r.args[1] ;
+      return "The value is not match with "+ r.args[0].replace('#','')+ ' field';
     },
     check: function (r) {
       $.get(r.args[0].replace('%s', r.val()), function (data) {
         if (!data || data.err || data.error)
           return r.callback(r.args[1]);
         r.callback(true);
-      }).fail(function () {
-        r.callback(r.args[1]);
       });
     }
   });
