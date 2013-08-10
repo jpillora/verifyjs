@@ -1,4 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/06/12
+/** Verify.js - v0.0.1 - 2013/08/11
  * https://github.com/jpillora/verify
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
@@ -1025,11 +1025,19 @@ var globalOptions = {
   track: $.noop,
   //whether to show prompts
   showPrompt: true,
+  // for twitter bootsrap form structure
+  bootstrapPrompt: false,
   //prompt method,
   prompt: function(element, text, opts) {
-    if($.type($.notify) === 'function') {
+    if($.type($.notify) === 'function' && !this.bootstrapPrompt) {
       if(!opts) opts = {color: 'red'};
       $.notify(element, text, opts);
+    } else if (this.bootstrapPrompt) {
+      element.siblings(".help-inline").html(text || '');
+      if (text)
+        element.closest(".control-group").removeClass("success").addClass("error");
+      else
+        element.closest(".control-group").removeClass("error").addClass("success");
     }
   }
 };
@@ -2278,6 +2286,50 @@ $(function() {
 log("plugin added.");
 
 
+window.verifyMessages = window.verifyMessages || {};
+(function ($){
+  window.verifyMessages = $.extend({
+    currency: "Invalid monetary value",
+    email: "Invalid email address",
+    url: "Invalid URL",
+    alphanumeric: "Use digits and letters only",
+    street_number: "Street Number only",
+    number: "Use digits only",
+    numberSpace: "Use digits and spaces only",
+    postcode: "Invalid postcode",
+    date: {
+      invalid: "Invalid date",
+      start: "Invalid Start Date",
+      end: "Invalid End Date",
+      startEnd: "Start Date must come before End Date"
+    },
+    required: {
+      all: "This field is required",
+      multiple: "Please select an option",
+      single: "This checkbox is required"
+    },
+    regex: "Invalid format",
+    phone: [
+      "Use digits and spaces only",
+      "Number must start with 0",
+      "Must be 10 digits long"
+    ],
+    size: [
+      "Must be %s characters",
+      "Must be between %s and %s characters"
+    ],
+    min: "Must be at least %s characters",
+    max: "Must be at most %s characters",
+    decimal: "Invalid decimal value",
+    minVal: "Must be greater than %s",
+    maxVal: "Must be less than %s",
+    rangeVal: "Must be between %s\nand %s",
+    agreement: "You must agree to continue",
+    minAge: "You must be at least %s",
+    compare: "The value not match with %s field",
+    check: "The value specified is already in use"
+  }, window.verifyMessages);
+})(window.jQuery);
 (function($) {
 
   if($.verify === undefined) {
@@ -2291,35 +2343,35 @@ log("plugin added.");
      */
     currency: {
       regex: /^\-?\$?\d{1,2}(,?\d{3})*(\.\d+)?$/,
-      message: "Invalid monetary value"
+      message: window.verifyMessages.currency
     },
     email: {
       regex: /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()\[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-      message: "Invalid email address"
+      message: window.verifyMessages.email
     },
     url: {
       regex: /^https?:\/\/[\-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[\-A-Za-z0-9+&@#\/%=~_|]/,
-      message: "Invalid URL"
+      message: window.verifyMessages.url
     },
     alphanumeric: {
       regex: /^[0-9A-Za-z]+$/,
-      message: "Use digits and letters only"
+      message: window.verifyMessages.alphanumeric
     },
     street_number: {
       regex: /^\d+[A-Za-z]?(-\d+)?[A-Za-z]?$/,
-      message: "Street Number only"
+      message: window.verifyMessages.street_number
     },
     number: {
       regex: /^\d+$/,
-      message: "Use digits only"
+      message: window.verifyMessages.number
     },
     numberSpace: {
       regex: /^[\d\ ]+$/,
-      message: "Use digits and spaces only"
+      message: window.verifyMessages.numberSpace
     },
     postcode: {
       regex: /^\d{4}$/,
-      message: "Invalid postcode"
+      message: window.verifyMessages.postcode
     },
     date: {
       fn: function(r) {
@@ -2327,7 +2379,7 @@ log("plugin added.");
           return true;
         return r.message;
       },
-      message: "Invalid date"
+      message: window.verifyMessages.date.invalid
     },
     required: {
 
@@ -2364,11 +2416,7 @@ log("plugin added.");
         }
         return true;
       },
-      messages: {
-        "all": "This field is required",
-        "multiple": "Please select an option",
-        "single": "This checkbox is required"
-      }
+      messages: window.verifyMessages.required
     },
     regex: {
       fn: function(r) {
@@ -2385,7 +2433,7 @@ log("plugin added.");
           return r.args[1] || r.message;
         return true;
       },
-      message: "Invalid format"
+      message: window.verifyMessages.regex
     },
     //an alias
     pattern: {
@@ -2403,13 +2451,13 @@ log("plugin added.");
       r.val(r.val().replace(/\D/g,''));
       var v = r.val();
       if(!v.match(/^\+?[\d\s]+$/))
-        return "Use digits and spaces only";
+        return window.verifyMessages.phone[0];
       if(v.match(/^\+/))
         return true; //allow all international
       if(!v.match(/^0/))
-        return "Number must start with 0";
+        return window.verifyMessages.phone[1];
       if(v.replace(/\s/g,"").length !== 10)
-        return "Must be 10 digits long";
+        return window.verifyMessages.phone[2];
       return true;
     },
     size: function(r){
@@ -2417,12 +2465,12 @@ log("plugin added.");
       if(exactOrLower !== undefined && upper === undefined) {
         var exact = parseInt(exactOrLower, 10);
         if(r.val().length !== exact)
-          return  "Must be "+exact+" characters";
+          return window.verifyMessages.size[0].replace("%s", exact);
       } else if(exactOrLower !== undefined && upper !== undefined) {
         var lower = parseInt(exactOrLower, 10);
         upper = parseInt(upper, 10);
         if(v.length < lower || upper < v.length)
-          return "Must be between "+lower+" and "+upper+" characters";
+          return window.verifyMessages.size[1].replace("%s", lower).replace("%s", upper);
       } else {
         r.warn("size validator parameter error on field: " + r.field.attr('name'));
       }
@@ -2432,13 +2480,13 @@ log("plugin added.");
     min: function(r) {
       var v = r.val(), min = parseInt(r.args[0], 10);
       if(v.length < min)
-        return "Must be at least " + min + " characters";
+        return window.verifyMessages.min.replace("%s", min);
       return true;
     },
     max: function(r) {
       var v = r.val(), max = parseInt(r.args[0], 10);
       if(v.length > max)
-        return "Must be at most " + max + " characters";
+        return window.verifyMessages.max.replace("%s", max);
       return true;
     },
 
@@ -2447,7 +2495,7 @@ log("plugin added.");
           places = r.args[0] ? parseInt(r.args[0], 10) : 2;
 
       if(!vStr.match(/^\d+(,\d{3})*(\.\d+)?$/))
-        return "Invalid decimal value";
+        return window.verifyMessages.decimal;
 
       var v = parseFloat(vStr.replace(/[^\d\.]/g,'')),
           factor = Math.pow(10,places);
@@ -2462,7 +2510,7 @@ log("plugin added.");
           suffix = r.args[1] || '',
           min = parseFloat(r.args[0]);
       if(v < min)
-        return "Must be greater than " + min + suffix;
+        return window.verifyMessages.minVal.replace("%s", min + suffix);
       return true;
     },
     maxVal: function(r) {
@@ -2470,7 +2518,7 @@ log("plugin added.");
           suffix = r.args[1] || '',
           max = parseFloat(r.args[0]);
       if(v > max)
-        return "Must be less than " + max + suffix;
+        return window.verifyMessages.maxVal.replace("%s", max + suffix);
       return true;
     },
     rangeVal: function(r) {
@@ -2480,13 +2528,13 @@ log("plugin added.");
           min = parseFloat(r.args[0]),
           max = parseFloat(r.args[1]);
       if(v > max || v < min)
-        return "Must be between " + prefix + min + suffix + "\nand " + prefix + max + suffix;
+        return window.verifyMessages.rangeVal.replace("%s", prefix + min + suffix).replace("%s", prefix + max + suffix);
       return true;
     },
 
     agreement: function(r){
       if(!r.field.is(":checked"))
-        return "You must agree to continue";
+        return window.verifyMessages.agreement;
       return true;
     },
     minAge: function(r){
@@ -2501,10 +2549,22 @@ log("plugin added.");
       var fieldDate = $.verify.utils.parseDate(r.val());
 
       if(fieldDate === "Invalid Date")
-        return "Invalid Date";
+        return window.verifyMessages.date.invalid;
       if(fieldDate > minDate)
-        return "You must be at least " + age;
+        return window.verifyMessages.minAge.replace("%s", age);
       return true;
+    },
+    compare: function (r) {
+      if ($(r.args[0]).val() === r.val())
+        return true;
+      return window.verifyMessages.compare.replace("%s", r.args[1] || r.args[0].replace('#',''));
+    },
+    check: function (r) {
+      $.get(r.args[0].replace('%s', r.val()), function (data) {
+        if (!data || data.err || data.error)
+          return r.callback(r.args[1] || window.verifyMessages.check);
+        r.callback(true);
+      });
     }
   });
 
@@ -2522,14 +2582,14 @@ log("plugin added.");
 
       var startDate = $.verify.utils.parseDate(start.val());
       if(!startDate)
-        return "Invalid Start Date";
+        return window.verifyMessages.date.start;
 
       var endDate = $.verify.utils.parseDate(end.val());
       if(!endDate)
-        return "Invalid End Date";
+        return window.verifyMessages.date.end;
 
       if(startDate >= endDate)
-        return "Start Date must come before End Date";
+        return window.verifyMessages.date.startEnd;
 
       return true;
     },
