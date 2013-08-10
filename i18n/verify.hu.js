@@ -1,6 +1,6 @@
 /** 
  * internationalization - i18n
- * English template
+ * hungarian
  */
 window.verifyMessages = window.verifyMessages || {};
 (function ($){
