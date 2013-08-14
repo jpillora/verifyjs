@@ -29,6 +29,16 @@
         "namespace": "aus",
         "params": [],
         "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "description": "<p>Australian Validation Rules</p>",
+        "code": "(function($) {\n  $.verify.addFieldRules({"
+      },
+      {
+        "namespace": "aus",
+        "params": [],
+        "tests": {
           "valids": [
             "2000"
           ],
@@ -60,6 +70,16 @@
         "type": "field",
         "description": "<p>Ensures an australian phone number  </p>",
         "code": "phone: function(r) {\n      r.val(r.val().replace(/[^\\+\\d]/g,''));\n      var v = r.val();\n      if(!v.match(/^\\+?[\\d\\s]+$/))\n        return \"Use digits and spaces only\";\n      if(v.match(/^\\+\\d+$/))\n        return true; //allow all international\n      if(!v.match(/^0/))\n        return \"Number must start with 0\";\n      if(v.replace(/\\s/g,\"\").length !== 10)\n        return \"Must be 10 digits long\";\n      return true;\n    }"
+      },
+      {
+        "namespace": "aus",
+        "params": [],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "description": "",
+        "code": "});\n})(jQuery);"
       }
     ],
     "dependencies": [],
@@ -68,6 +88,16 @@
   {
     "namespace": "core",
     "rules": [
+      {
+        "namespace": "core",
+        "params": [],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "description": "<p>Core Validation Rules</p>",
+        "code": "(function($) {\n  $.verify.addFieldRules({"
+      },
       {
         "namespace": "core",
         "params": [],
@@ -265,6 +295,16 @@
         "type": "field",
         "description": "<p>Ensures the number of characters is a inside a given length range</p>",
         "code": "size: {\n      fn: function(r){\n        var len = r.val().length;\n        r.min = parseInt(r.args[0], 10);\n        r.max = parseInt(r.args[1], 10) || r.min;\n\n        if(!r.min){\n          r.warn(\"Invalid argument: \"+r.args[0]);\n          return true;\n        }\n\n        if(len < r.min || len > r.max)\n          return r.messages[r.min === r.max ? 'exact' : 'range'];\n\n        return true;\n      },\n      messages: {\n        range: \"Must be between {{ min }} and {{ max }} characters\",\n        exact: \"Must be {{ min }} characters\"\n      }\n    }"
+      },
+      {
+        "namespace": "core",
+        "params": [],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "description": "",
+        "code": "});\n\n})(jQuery);"
       }
     ],
     "dependencies": [],
@@ -276,6 +316,16 @@
   {
     "namespace": "date",
     "rules": [
+      {
+        "namespace": "date",
+        "params": [],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "description": "<p>Date Validation Rules</p>",
+        "code": "(function($) {\n\n  $.verify.addFieldRules({"
+      },
       {
         "namespace": "date",
         "params": [
@@ -330,6 +380,16 @@
       },
       {
         "namespace": "date",
+        "params": [],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "description": "",
+        "code": "});\n\n  // Group validation rules\n  $.verify.addGroupRules({"
+      },
+      {
+        "namespace": "date",
         "params": [
           {
             "name": "age",
@@ -347,16 +407,36 @@
         "type": "field",
         "description": "<p>Ensures a valid date range - e.g. start &lt; end</p>",
         "code": "dateRange: {\n      extend: \"date\",\n      fn: function(r) {\n        var start = r.field(\"start\"),\n            end = r.field(\"end\");\n\n        if(!start || !end) return true;\n\n        var startDate = r.parse(start, r.format);\n        if(!startDate)\n          return { start: r.messages.format };\n\n        var endDate = r.parse(end, r.format);\n        if(!endDate)\n          return { start: r.messages.format };\n\n        if(startDate.isAfter(endDate))\n          return r.messages.range;\n\n        return true;\n      },\n      messages: {\n        range: \"Start Date must come before End Date\"\n      }\n\n    }"
+      },
+      {
+        "namespace": "date",
+        "params": [],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "description": "",
+        "code": "});\n})(jQuery);"
       }
     ],
     "dependencies": [
-      "moment.js"
+      "moment-2.0.js"
     ],
     "langs": []
   },
   {
     "namespace": "misc",
     "rules": [
+      {
+        "namespace": "misc",
+        "params": [],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "description": "<p>Miscellaneous Validation Rules</p>",
+        "code": "(function($) {\n  $.verify.addFieldRules({"
+      },
       {
         "namespace": "misc",
         "params": [],
@@ -388,6 +468,16 @@
         "type": "field",
         "description": "<p>Ensures a valid street number</p>",
         "code": "streetNumber: {\n      regex: /^\\d+[A-Za-z]?(-\\d+[A-Za-z]?)?$/,\n      message: \"Street Number only\"\n    }"
+      },
+      {
+        "namespace": "misc",
+        "params": [],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "description": "",
+        "code": "});\n})(jQuery);"
       }
     ],
     "dependencies": [],
@@ -396,6 +486,16 @@
   {
     "namespace": "numeric",
     "rules": [
+      {
+        "namespace": "numeric",
+        "params": [],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "description": "<p>Numeric Validation Rules</p>",
+        "code": "(function($) {\n  $.verify.addFieldRules({"
+      },
       {
         "namespace": "numeric",
         "params": [
@@ -409,11 +509,11 @@
           "valids": [
             "$100.00",
             "-$100.00",
-            "#params(*) -*100.00"
+            "#params(X) -X100.00"
           ],
           "invalids": [
             "100.00",
-            "-*100.00"
+            "-X100.00"
           ]
         },
         "name": "currency",
@@ -431,13 +531,20 @@
           }
         ],
         "tests": {
-          "valids": [],
-          "invalids": []
+          "valids": [
+            "1.00",
+            "100.00",
+            "333"
+          ],
+          "invalids": [
+            "33.33.00",
+            "-$100"
+          ]
         },
         "name": "decimal",
         "type": "field",
         "description": "<p>Ensures valid decimal number and rounds it</p>",
-        "code": "decimal: {\n      fn: function(r) {\n        var vStr = r.val(),\n            places = r.args[0] ? parseInt(r.args[0], 10) : 2;\n\n        if(!vStr.match(/^\\-?\\d+(,\\d{3})*(\\.\\d+)?$/))\n          return r.message;\n\n        var v = parseFloat(vStr.replace(/[^\\d\\.]/g,'')),\n            factor = Math.pow(10,places);\n\n        v = (Math.round(v*factor)/factor);\n        r.field.val(v);\n\n        return true;\n      },\n      message: \"Invalid decimal value\"\n    },"
+        "code": "decimal: {\n      fn: function(r) {\n        var vStr = r.val(),\n            places = r.args[0] ? parseInt(r.args[0], 10) : 2;\n\n        if(!vStr.match(/^\\-?\\d+(,\\d{3})*(\\.\\d+)?$/))\n          return r.message;\n\n        var v = parseFloat(vStr.replace(/,/g,'')),\n            factor = Math.pow(10,places);\n\n        v = (Math.round(v*factor)/factor);\n        r.field.val(v);\n\n        return true;\n      },\n      message: \"Invalid decimal value\"\n    },"
       },
       {
         "namespace": "numeric",
@@ -449,13 +556,18 @@
           }
         ],
         "tests": {
-          "valids": [],
-          "invalids": []
+          "valids": [
+            "xxxx",
+            "#params(2.5) 3 "
+          ],
+          "invalids": [
+            "#params(2.5) 2"
+          ]
         },
         "name": "minVal",
         "type": "field",
         "description": "<p>Ensures the input is greater than the given value</p>",
-        "code": "minVal: {\n      fn:function(r) {\n        var v = parseFloat(r.val().replace(/[^\\d\\.]/g,''));\n        r.min = parseFloat(r.args[0]);\n        if(r.args[1]) r.suffix = r.args[1];\n        if(r.args[2]) r.suffix = r.args[2];\n        if(v < r.min)\n          return r.message;\n        r.val(v);\n        return true;\n      },\n      prefix: '',\n      suffix: '',\n      message: \"Must be greater than { prefix }{ min }{ suffix }\"\n    },"
+        "code": "minVal: {\n      fn:function(r) {\n        var v = parseFloat(r.val().replace(/[^\\d\\.]/g,''));\n        r.min = parseFloat(r.args[0]);\n        if(!r.min) {\n          r.warn('minVal: No minimum set');\n          return true;\n        }\n        r.preffix = r.args[1] || '';\n        r.suffix =  r.args[2] || '';\n        if(v < r.min)\n          return r.message;\n        r.val(v);\n        return true;\n      },\n      prefix: '',\n      suffix: '',\n      message: \"Must be greater than { prefix }{ min }{ suffix }\"\n    },"
       },
       {
         "namespace": "numeric",
@@ -467,13 +579,18 @@
           }
         ],
         "tests": {
-          "valids": [],
-          "invalids": []
+          "valids": [
+            "xxxx",
+            "#params(2.5) 2 "
+          ],
+          "invalids": [
+            "#params(2.5) 3"
+          ]
         },
         "name": "maxVal",
         "type": "field",
         "description": "<p>Ensures the input is less than the given value</p>",
-        "code": "maxVal: {\n      fn:function(r) {\n        var v = parseFloat(r.val().replace(/[^\\d\\.]/g,''));\n        r.max = parseFloat(r.args[0]);\n        if(r.args[1]) r.suffix = r.args[1];\n        if(r.args[2]) r.suffix = r.args[2];\n        if(v > r.max)\n          return r.message;\n        r.val(v);\n        return true;\n      },\n      prefix: '',\n      suffix: '',\n      message: \"Must be less than { prefix }{ max }{ suffix }\"\n    },"
+        "code": "maxVal: {\n      fn:function(r) {\n        var v = parseFloat(r.val().replace(/[^\\d\\.]/g,''));\n        r.max = parseFloat(r.args[0]);\n        if(!r.max) {\n          r.warn('maxVal: No maximum set');\n          return true;\n        }\n        r.preffix = r.args[1] || '';\n        r.suffix =  r.args[2] || '';\n        if(v > r.max)\n          return r.message;\n        r.val(v);\n        return true;\n      },\n      prefix: '',\n      suffix: '',\n      message: \"Must be less than { prefix }{ max }{ suffix }\"\n    },"
       },
       {
         "namespace": "numeric",
@@ -490,13 +607,31 @@
           }
         ],
         "tests": {
-          "valids": [],
-          "invalids": []
+          "valids": [
+            "missingparams",
+            "#params(2.5) missingparam",
+            "#params(2.5,6.5) 3",
+            "#params(2.5,6.5) 6.45"
+          ],
+          "invalids": [
+            "#params(2.5,6.5) 1.45",
+            "#params(2.5,6.5) 7.45"
+          ]
         },
         "name": "rangeVal",
         "type": "field",
         "description": "<p>Ensures the input is within the given range</p>",
-        "code": "rangeVal: {\n      fn: function(r) {\n        var v = parseFloat(r.val().replace(/[^\\d\\.]/g,''));\n\n        r.min = parseFloat(r.args[0]);\n        r.max = parseFloat(r.args[1]);\n        if(r.args[2]) r.suffix = r.args[2];\n        if(r.args[3]) r.suffix = r.args[3];\n\n        if(v > r.max || v < r.min)\n          return r.message;\n        return true;\n      },\n      prefix: '',\n      suffix: '',\n      message: \"Must be between { prefix }{ min }{ suffix }\\nand { prefix }{ max }{ suffix }\"\n    }"
+        "code": "rangeVal: {\n      fn: function(r) {\n        var v = parseFloat(r.val().replace(/[^\\d\\.]/g,''));\n\n        r.min = parseFloat(r.args[0]);\n        if(!r.min) {\n          r.warn('rangeVal: No minimum set');\n          return true;\n        }\n        r.max = parseFloat(r.args[1]);\n        if(!r.max) {\n          r.warn('rangeVal: No maximum set');\n          return true;\n        }\n        r.preffix = r.args[2] || '';\n        r.suffix =  r.args[3] || '';\n        if(v > r.max || v < r.min)\n          return r.message;\n        return true;\n      },\n      prefix: '',\n      suffix: '',\n      message: \"Must be between { prefix }{ min }{ suffix }\\nand { prefix }{ max }{ suffix }\"\n    }"
+      },
+      {
+        "namespace": "numeric",
+        "params": [],
+        "tests": {
+          "valids": [],
+          "invalids": []
+        },
+        "description": "",
+        "code": "});\n})(jQuery);"
       }
     ],
     "dependencies": [],
@@ -506,7 +641,7 @@
     </script>
 
     <!-- rules deps -->
-    <script type="text/javascript" src="../../dist/rules/date/vendor/moment.js"></script>
+    <script type="text/javascript" src="../../dist/rules/date/vendor/moment-2.0.js"></script>
 
     <!-- rules -->
     <script type="text/javascript" src="../../dist/rules/aus/aus.js"></script>

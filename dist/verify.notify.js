@@ -1,9 +1,4 @@
-/** Verify.js - v0.0.1 - 2013/06/18
- * https://github.com/jpillora/verify
- * Copyright (c) 2013 Jaime Pillora - MIT
- */
-
-(function(window,document,$,undefined) {(function(window,document,undefined) {
+(function(window,document,undefined) {
 'use strict';
 
 var Notification, addStyle, coreStyle, createElem, defaults, getAnchorElement, getStyle, globalAnchors, hAligns, incr, inherit, insertCSS, mainPositions, opposites, parsePosition, pluginClassName, pluginName, pluginOptions, positions, realign, stylePrefixes, styles, vAligns,
@@ -539,7 +534,7 @@ $.notify.addStyle("bootstrap", {
   }
 });
 
-(function($) {
+(function(window,document,$,undefined) {(function($) {
 
   if(window.console === undefined)
     window.console = { isFake: true };
@@ -2502,9 +2497,9 @@ log("plugin added.");
      * 
      * @valid $100.00
      * @valid -$100.00
-     * @valid #params(*) -*100.00
+     * @valid #params(X) -X100.00
      * @invalid 100.00
-     * @invalid -*100.00
+     * @invalid -X100.00
      */
     currency: {
       fn: function(r) {
@@ -2527,6 +2522,12 @@ log("plugin added.");
      * @name decimal
      * @type field
      * @param places The numbers of places to round
+     *
+     * @valid 1.00
+     * @valid 100.00
+     * @valid 333
+     * @invalid 33.33.00
+     * @invalid -$100
      */
     decimal: {
       fn: function(r) {
@@ -2536,7 +2537,7 @@ log("plugin added.");
         if(!vStr.match(/^\-?\d+(,\d{3})*(\.\d+)?$/))
           return r.message;
 
-        var v = parseFloat(vStr.replace(/[^\d\.]/g,'')),
+        var v = parseFloat(vStr.replace(/,/g,'')),
             factor = Math.pow(10,places);
 
         v = (Math.round(v*factor)/factor);
@@ -2551,13 +2552,21 @@ log("plugin added.");
      * @name minVal
      * @type field
      * @param min The minimum value
+     *
+     * @valid xxxx
+     * @valid #params(2.5) 3 
+     * @invalid #params(2.5) 2
      */
     minVal: {
       fn:function(r) {
         var v = parseFloat(r.val().replace(/[^\d\.]/g,''));
         r.min = parseFloat(r.args[0]);
-        if(r.args[1]) r.suffix = r.args[1];
-        if(r.args[2]) r.suffix = r.args[2];
+        if(!r.min) {
+          r.warn('minVal: No minimum set');
+          return true;
+        }
+        r.preffix = r.args[1] || '';
+        r.suffix =  r.args[2] || '';
         if(v < r.min)
           return r.message;
         r.val(v);
@@ -2572,13 +2581,21 @@ log("plugin added.");
      * @name maxVal
      * @type field
      * @param max The maximum value
+     *
+     * @valid xxxx
+     * @valid #params(2.5) 2 
+     * @invalid #params(2.5) 3
      */
     maxVal: {
       fn:function(r) {
         var v = parseFloat(r.val().replace(/[^\d\.]/g,''));
         r.max = parseFloat(r.args[0]);
-        if(r.args[1]) r.suffix = r.args[1];
-        if(r.args[2]) r.suffix = r.args[2];
+        if(!r.max) {
+          r.warn('maxVal: No maximum set');
+          return true;
+        }
+        r.preffix = r.args[1] || '';
+        r.suffix =  r.args[2] || '';
         if(v > r.max)
           return r.message;
         r.val(v);
@@ -2594,16 +2611,30 @@ log("plugin added.");
      * @type field
      * @param min The minimum value
      * @param max The maximum value
+     *
+     * @valid missingparams
+     * @valid #params(2.5) missingparam
+     * @valid #params(2.5,6.5) 3
+     * @valid #params(2.5,6.5) 6.45
+     * @invalid #params(2.5,6.5) 1.45
+     * @invalid #params(2.5,6.5) 7.45
      */
     rangeVal: {
       fn: function(r) {
         var v = parseFloat(r.val().replace(/[^\d\.]/g,''));
 
         r.min = parseFloat(r.args[0]);
+        if(!r.min) {
+          r.warn('rangeVal: No minimum set');
+          return true;
+        }
         r.max = parseFloat(r.args[1]);
-        if(r.args[2]) r.suffix = r.args[2];
-        if(r.args[3]) r.suffix = r.args[3];
-
+        if(!r.max) {
+          r.warn('rangeVal: No maximum set');
+          return true;
+        }
+        r.preffix = r.args[2] || '';
+        r.suffix =  r.args[3] || '';
         if(v > r.max || v < r.min)
           return r.message;
         return true;

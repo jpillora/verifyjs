@@ -35,10 +35,10 @@ module.exports = (grunt) ->
         continue unless meta.tags
 
         for t in meta.tags
-
           result.dependencies.push t.string if t.type is 'require'
-
+          #name required!
           rule.name = t.string if t.type is 'name'
+          continue unless rule.name
           rule.type = t.types[0] if t.type is 'type'
           rule.tests.valids.push t.string if t.type is 'valid'
           rule.tests.invalids.push t.string if t.type is 'invalid'
@@ -49,7 +49,6 @@ module.exports = (grunt) ->
               description: t.description
             }
 
-        continue unless rule.name
 
         rule.description = meta.description?.full
         rule.code = meta.code

@@ -1,6 +1,6 @@
 /**
  * Date Validation Rules
- * @require moment.js
+ * @require moment-2.0.js
  * @author Jaime Pillora
  */
 

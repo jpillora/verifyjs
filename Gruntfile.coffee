@@ -50,13 +50,13 @@ module.exports = (grunt) ->
       dist:
         src: files
         dest: "dist/<%= pkg.name %>.js"
-      distNotify:
-        src: ["src/vendor/notify.js"].concat(files)
+      notify:
+        src: ["src/vendor/notify.js", "dist/<%= pkg.name %>.js"]
         dest: "dist/<%= pkg.name %>.notify.js"
 
     wrap:
       dist:
-        src: ['dist/*.js']
+        src: ['dist/<%= pkg.name %>.js']
         dest: '.'
         wrapper: ["""
                   <%= banner %>
@@ -70,14 +70,10 @@ module.exports = (grunt) ->
       options:
         stripBanners: true
         banner: '<%= banner %>'
-
       dist:
-        src: "dist/<%= pkg.name %>.js"
-        dest: "dist/<%= pkg.name %>.min.js"
-
-      distNotify:
-        src: "dist/<%= pkg.name %>.notify.js"
-        dest: "dist/<%= pkg.name %>.notify.min.js"
+        files:
+          'dist/<%= pkg.name %>.min.js': 'dist/<%= pkg.name %>.js'
+          'dist/<%= pkg.name %>.notify.min.js': 'dist/<%= pkg.name %>.notify.js'
 
     watch:
       default:
@@ -162,7 +158,7 @@ module.exports = (grunt) ->
           run: true
 
   #task groups
-  grunt.registerTask "build", ["jshint:build","concat","wrap","uglify"]
+  grunt.registerTask "build", ["jshint:build","concat:dist","wrap","concat:notify","uglify"]
   grunt.registerTask "rules", ["jshint:rules","dox","copy:rules"]
   grunt.registerTask "test", ["coffee:test","template:runner","connect","mocha:test"]
   grunt.registerTask "default", ["build","rules","test"]

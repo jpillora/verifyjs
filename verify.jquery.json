@@ -1,6 +1,6 @@
 {
   "name": "verify",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "title": "Verify.js",
   "description": "A jQuery plugin to provide fully customisable asynchronous client-side validations.",
   "author": {
