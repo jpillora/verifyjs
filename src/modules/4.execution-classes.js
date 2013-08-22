@@ -387,7 +387,7 @@ var FormExecution = null,
 
     templateResponse: function(string, prop) {
 
-      var val = this.r[prop];
+      var val = this.rule.userObj[prop];
 
       if(val !== undefined)
         return val;

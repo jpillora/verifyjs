@@ -32,8 +32,13 @@ var Set = Class.extend({
     return !!this.find(item);
   },
   add: function(item) {
+    if(!item.equals) {
+      console.warn('items being added to Set must have an equals function');
+      return false;
+    }
     if(!this.has(item)) {
       this.array.push(item);
+      this.length = this.array.length;
       return true;
     }
     return false;
@@ -48,22 +53,18 @@ var Set = Class.extend({
     return count;
   },
   remove: function(item) {
-    var newSet = [];
-    for(var i = 0, l = this.array.length; i<l; ++i)
-      if(!this.verifyEquals(this.get(i),item))
-        newSet.push(this.get(i));
-
-    this.array = newSet;
+    var i = this.indexOf(item);
+    if(i === -1) return false;
+    this.array.splice(i, 1);
+    this.length = this.array.length;
     return item;
   },
   removeAll: function() {
     this.array = [];
   },
   equals: function(i1, i2) {
-    if(i1 && i2 &&
-       i1.verifyEquals !== undefined &&
-       i2.verifyEquals !== undefined)
-      return i1.verifyEquals(i2);
+    if(i1 && i2 && i1.equals)
+      return i1.equals(i2);
     else
       return i1 === i2;
   },

@@ -56,6 +56,7 @@ $.extend($.verify, {
   defaults: globalOptions,
   globals: globalOptions,
   utils: Utils,
+  Set: Set,
   forms: new TypedSet(ValidationForm, [], "FormSet"),
   _hidden: {
     ruleManager: ruleManager
