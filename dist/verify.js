@@ -1061,7 +1061,7 @@ var ValidationForm = null;
     bindEvents: function() {
       this.domElem
         .on("keyup.jqv", "input", this.onKeyup)
-        .on("blur.jqv", "input[type=text]:not(.hasDatepicker),input:not([type].hasDatepicker)", this.onValidate)
+        .on("blur.jqv", "input[type=text]:not(.hasDatepicker),input:not([type].hasDatepicker),textarea", this.onValidate)
         .on("change.jqv", "input[type=text].hasDatepicker,select,[type=checkbox],[type=radio]", this.onValidate)
         .on("submit.jqv", this.onSubmit)
         .trigger("initialised.jqv");
