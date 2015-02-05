@@ -1,6 +1,6 @@
-/** Verify.js - v0.0.1 - 2013/06/12
+/** Verify.js - v0.0.1 - 2015/02/05
  * https://github.com/jpillora/verify
- * Copyright (c) 2013 Jaime Pillora - MIT
+ * Copyright (c) 2015 Jaime Pillora - MIT
  */
 
 (function(window,document,undefined) {
@@ -1172,6 +1172,7 @@ var ValidationForm = null;
   });
 
 })();
+
 // only exposing two classes
 var FormExecution = null,
     FieldExecution = null;

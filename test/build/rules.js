@@ -1,6 +1,5 @@
 describe("Validation rules", function() {
   var form, html;
-
   form = null;
   html = "<div data-demo>\n  <form>\n    <input id='required' data-validate='required'>\n    <input id='number' data-validate='number'>\n\n    <input id='phone' data-validate='phone'>\n    <input id='currency' data-validate='currency'>\n\n    <input name='multiRequired' id='multiRequired' data-validate='required,number'>\n    <input name='multiOptional' id='multiOptional' data-validate='phone,number'>\n\n    <input name='minMax' id='minMax' data-validate='min(3),max(5)'/>\n\n    <input class='submit' type='submit'/>\n  </form>\n</div>";
   beforeEach(function() {
