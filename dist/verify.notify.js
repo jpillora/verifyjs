@@ -1666,7 +1666,9 @@ var ValidationForm = null;
         if(this.submitResult == true)
         {
           //input submit
-          var idInputSubmit = this.domElem[0][1].id;
+          var idForm = this.domElem[0];
+          var inputSubmit = $(idForm).find(':submit');
+          var idInputSubmit = $(inputSubmit).attr('id');
 
           // disable input submit for preventing double submit
           $('#'+idInputSubmit).prop('disabled', true);
