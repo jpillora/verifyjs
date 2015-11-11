@@ -2534,7 +2534,7 @@ log("plugin added.");
 
       var endDate = $.verify.utils.parseDate(end.val());
       if(!endDate)
-        return "Некорректная дата до";
+        return "Некорректная дата До";
 
       if(startDate >= endDate)
         return "Дата от должна быть быть раньше даты До";
