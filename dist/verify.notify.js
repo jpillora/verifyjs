@@ -2307,7 +2307,7 @@ log("plugin added.");
     },
     alphaSpace: {
       regex: /^[A-Za-zа-яёА-ЯЁ ]+$/,
-      message: "Используйте только цифры и буквы"
+      message: "Используйте только буквы и пробелы"
     },
     street_number: {
       regex: /^\d+[A-Za-zа-яёА-ЯЁ]?(-\d+)?[A-Za-zа-яёА-ЯЁ]?$/,
