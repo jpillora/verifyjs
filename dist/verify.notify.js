@@ -2537,7 +2537,7 @@ log("plugin added.");
         return "Некорректная дата До";
 
       if(startDate >= endDate)
-        return "Дата от должна быть быть раньше даты До";
+        return "Дата От должна быть быть раньше даты До";
 
       return true;
     },
