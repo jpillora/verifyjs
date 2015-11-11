@@ -2302,11 +2302,15 @@ log("plugin added.");
       message: "Некорректный  URL"
     },
     alphanumeric: {
-      regex: /^[0-9A-Za-z]+$/,
+      regex: /^[0-9A-Za-zа-яёА-ЯЁ]+$/,
+      message: "Используйте только цифры и буквы"
+    },
+    alphaSpace: {
+      regex: /^[A-Za-zа-яёА-ЯЁ ]+$/,
       message: "Используйте только цифры и буквы"
     },
     street_number: {
-      regex: /^\d+[A-Za-z]?(-\d+)?[A-Za-z]?$/,
+      regex: /^\d+[A-Za-zа-яёА-ЯЁ]?(-\d+)?[A-Za-zа-яёА-ЯЁ]?$/,
       message: "Только название улицы и цифры"
     },
     number: {
