@@ -2409,7 +2409,6 @@ log("plugin added.");
         clean=clean.replace(/\s{2,}/g,' ');
       r.val(clean);
       var v = r.val();
-        console.log(v);
       if(!v.match(/^\+?[\d\(\)\s \-]+$/))
         return "Используйте только цифры, скобки, дефисы и пробелы";
       //if(v.match(/^\+/))
@@ -2419,9 +2418,7 @@ log("plugin added.");
         var length=v.replace(/\D/g,"").length;
       if(length < 10 || length > 13)
         return "Номер должен состоять из 10-13 цифр";
-        alert("OK");
         r.val(r.val().replace(/\D/g,''));
-        return false;
       return true;
     },
     size: function(r){
