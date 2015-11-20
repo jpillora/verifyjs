@@ -2413,7 +2413,7 @@ log("plugin added.");
         return "Используйте только цифры, скобки, дефисы и пробелы";
       //if(v.match(/^\+/))
       //  return true; //allow all international
-      if(!v.match(/^(\+|8|49)/))
+      if(!v.match(/^(\+|8|7|3|49)/))
         return "Номер должен начинаться с +(код) или 8";
         var length=v.replace(/\D/g,"").length;
       if(length < 10 || length > 13)
