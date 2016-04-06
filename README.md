@@ -7,7 +7,7 @@ Verify.js
 
 See demos and full documentation at:
 
-## http://verifyjs.com/
+## http://verifyjs.jpillora.com/
 
 #### MIT License
 
