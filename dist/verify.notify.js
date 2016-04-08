@@ -2291,35 +2291,39 @@ log("plugin added.");
      */
     currency: {
       regex: /^\-?\$?\d{1,2}(,?\d{3})*(\.\d+)?$/,
-      message: "Invalid monetary value"
+      message: "Неверный денежный формат"
     },
     email: {
       regex: /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()\[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-      message: "Invalid email address"
+      message: "Некорректный email адрес"
     },
     url: {
       regex: /^https?:\/\/[\-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[\-A-Za-z0-9+&@#\/%=~_|]/,
-      message: "Invalid URL"
+      message: "Некорректный  URL"
     },
     alphanumeric: {
-      regex: /^[0-9A-Za-z]+$/,
-      message: "Use digits and letters only"
+      regex: /^[0-9A-Za-zа-яёА-ЯЁ]+$/,
+      message: "Используйте только цифры и буквы"
+    },
+    alphaSpace: {
+      regex: /^[A-Za-zа-яёА-ЯЁ ]+$/,
+      message: "Используйте только буквы и пробелы"
     },
     street_number: {
-      regex: /^\d+[A-Za-z]?(-\d+)?[A-Za-z]?$/,
-      message: "Street Number only"
+      regex: /^\d+[A-Za-zа-яёА-ЯЁ]?(-\d+)?[A-Za-zа-яёА-ЯЁ]?$/,
+      message: "Только название улицы и цифры"
     },
     number: {
       regex: /^\d+$/,
-      message: "Use digits only"
+      message: "Используйте только цифры"
     },
     numberSpace: {
       regex: /^[\d\ ]+$/,
-      message: "Use digits and spaces only"
+      message: "Только цифры и пробелы"
     },
     postcode: {
       regex: /^\d{4}$/,
-      message: "Invalid postcode"
+      message: "Некорректный почтовый индекс"
     },
     date: {
       fn: function(r) {
@@ -2327,7 +2331,7 @@ log("plugin added.");
           return true;
         return r.message;
       },
-      message: "Invalid date"
+      message: "Некорректная дата"
     },
     required: {
 
@@ -2365,9 +2369,9 @@ log("plugin added.");
         return true;
       },
       messages: {
-        "all": "This field is required",
-        "multiple": "Please select an option",
-        "single": "This checkbox is required"
+        "all": "Обязательное поле",
+        "multiple": "Пожалуйста сделайте выбор",
+        "single": "Этот чекбокс обязателен"
       }
     },
     regex: {
@@ -2385,7 +2389,7 @@ log("plugin added.");
           return r.args[1] || r.message;
         return true;
       },
-      message: "Invalid format"
+      message: "Некорректный формат"
     },
     //an alias
     pattern: {
@@ -2400,16 +2404,21 @@ log("plugin added.");
 
     },
     phone: function(r) {
-      r.val(r.val().replace(/\D/g,''));
+        var clean=r.val().replace(/[^\d\+\(\) \-]/g,'');
+        clean=clean.replace(/\-{2,}/g,'-');
+        clean=clean.replace(/\s{2,}/g,' ');
+      r.val(clean);
       var v = r.val();
-      if(!v.match(/^\+?[\d\s]+$/))
-        return "Use digits and spaces only";
-      if(v.match(/^\+/))
-        return true; //allow all international
-      if(!v.match(/^0/))
-        return "Number must start with 0";
-      if(v.replace(/\s/g,"").length !== 10)
-        return "Must be 10 digits long";
+      if(!v.match(/^\+?[\d\(\)\s \-]+$/))
+        return "Используйте только цифры, скобки, дефисы и пробелы";
+      //if(v.match(/^\+/))
+      //  return true; //allow all international
+      if(!v.match(/^(\+|8|7|3|49)/))
+        return "Номер должен начинаться с +(код) или 8";
+        var length=v.replace(/\D/g,"").length;
+      if(length < 10 || length > 13)
+        return "Номер должен состоять из 10-13 цифр";
+        r.val(r.val().replace(/\D/g,''));
       return true;
     },
     size: function(r){
@@ -2522,14 +2531,14 @@ log("plugin added.");
 
       var startDate = $.verify.utils.parseDate(start.val());
       if(!startDate)
-        return "Invalid Start Date";
+        return "Некорректная дата От";
 
       var endDate = $.verify.utils.parseDate(end.val());
       if(!endDate)
-        return "Invalid End Date";
+        return "Некорректная дата До";
 
       if(startDate >= endDate)
-        return "Start Date must come before End Date";
+        return "Дата От должна быть быть раньше даты До";
 
       return true;
     },
