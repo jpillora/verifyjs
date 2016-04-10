@@ -18,6 +18,9 @@ describe "Validation rules", ->
 
         <input name='minMax' id='minMax' data-validate='min(3),max(5)'/>
 
+        <input name='password' id='password' value='abc123'>
+        <input name='password2' id='password2' data-validate='compare(#password, Password)'>
+
         <input class='submit' type='submit'/>
       </form>
     </div>
@@ -116,3 +119,14 @@ describe "Validation rules", ->
         expect(result).to.be.true
         done()
 
+  describe "compare tow password fields", ->
+
+    it "should be invalid (compare)", (done) ->
+      $('#password2').val('abc').validate (result) ->
+        expect(result).to.be.false
+        done()
+
+    it "should be valid (compare)", (done) ->
+      $('#password2').val('abc123').validate (result) ->
+        expect(result).to.be.true
+        done()

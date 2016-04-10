@@ -48,11 +48,19 @@ var globalOptions = {
   track: $.noop,
   //whether to show prompts
   showPrompt: true,
+  // for twitter bootsrap form structure
+  bootstrapPrompt: false,
   //prompt method,
   prompt: function(element, text, opts) {
-    if($.type($.notify) === 'function') {
+    if($.type($.notify) === 'function' && !this.bootstrapPrompt) {
       if(!opts) opts = {color: 'red'};
       $.notify(element, text, opts);
+    } else if (this.bootstrapPrompt) {
+      element.siblings(".help-inline").html(text || '');
+      if (text)
+        element.closest(".control-group").removeClass("success").addClass("error");
+      else
+        element.closest(".control-group").removeClass("error").addClass("success");
     }
   }
 };

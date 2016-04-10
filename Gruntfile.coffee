@@ -37,6 +37,7 @@ module.exports = (grunt) ->
     "src/vendor/jquery.console.js"
     "src/helper/*.js"
     "src/modules/*.js"
+    "i18n/verify.en.js"
     "src/<%= pkg.name %>.rules.js"
   ]
   # Project configuration.
