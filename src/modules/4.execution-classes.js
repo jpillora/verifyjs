@@ -243,11 +243,6 @@ var FormExecution = null,
     execute: function() {
       this._super();
 
-      if(this.isPending()) {
-        this.warn("pending... (waiting for %s)", this.prevExec.name);
-        return this.reject();
-      }
-
       //execute rules
       var ruleParams = ruleManager.parseElement(this.element);
 
