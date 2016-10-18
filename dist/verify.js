@@ -3,7 +3,7 @@
  * Copyright (c) 2013 Jaime Pillora - MIT
  */
 
-(function(window,document,undefined) {
+(function(window,document,$,undefined) {
 (function($) {
 
   if(window.console === undefined)
@@ -2028,4 +2028,4 @@ log("plugin added.");
   });
 
 })(jQuery);
-}(window,document));
+})(window,document,jQuery);
