@@ -1,6 +1,6 @@
-/** Verify.js - v0.0.1 - 2013/06/12
+/** Verify.js - v0.0.1 - 2015/02/05
  * https://github.com/jpillora/verify
- * Copyright (c) 2013 Jaime Pillora - MIT
+ * Copyright (c) 2015 Jaime Pillora - MIT
  */
 
 (function(window,document,undefined) {
@@ -1597,7 +1597,7 @@ var ValidationForm = null;
     bindEvents: function() {
       this.domElem
         .on("keyup.jqv", "input", this.onKeyup)
-        .on("blur.jqv", "input[type=text]:not(.hasDatepicker),input:not([type].hasDatepicker)", this.onValidate)
+        .on("blur.jqv", "input[type=text]:not(.hasDatepicker),input:not([type].hasDatepicker),textarea", this.onValidate)
         .on("change.jqv", "input[type=text].hasDatepicker,select,[type=checkbox],[type=radio]", this.onValidate)
         .on("submit.jqv", this.onSubmit)
         .trigger("initialised.jqv");
@@ -1708,6 +1708,7 @@ var ValidationForm = null;
   });
 
 })();
+
 // only exposing two classes
 var FormExecution = null,
     FieldExecution = null;

@@ -1,6 +1,5 @@
 describe("Group validation rules", function() {
   var form;
-
   form = null;
   beforeEach(function() {
     form = $("form");
