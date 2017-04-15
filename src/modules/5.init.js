@@ -1,3 +1,4 @@
+(function($) {
 
 /* ===================================== *
  * Plugin Public Interface
@@ -75,3 +76,4 @@ $(function() {
 
 log("plugin added.");
 
+})(jQuery);
